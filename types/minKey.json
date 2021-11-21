@@ -1,0 +1,14 @@
+{
+	"name": "minKey",
+	"erdAbbreviation": "<minK>",
+	"dtdAbbreviation": "{minK}",
+	"useSample": true,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": []
+	}
+}

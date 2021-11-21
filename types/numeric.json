@@ -1,0 +1,25 @@
+{
+	"name": "numeric",
+	"erdAbbreviation": "<num>",
+	"dtdAbbreviation": "{123}",
+	"useSample": true,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"default": "",
+		"mode": "",
+		"unit": "",
+		"minimum": "",
+		"exclusiveMinimum": false,
+		"maximum": "",
+		"exclusiveMaximum": false,
+		"multipleOf": "",
+		"divisibleBy": "",
+		"enum": [],
+		"sample": ""
+	}
+}

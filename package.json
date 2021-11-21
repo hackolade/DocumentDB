@@ -1,0 +1,57 @@
+{
+	"name": "DocumentDB",
+	"version": "0.0.1",
+	"versionDate": "2021-11-18",
+	"author": "hackolade",
+	"engines": {
+		"hackolade": "5.1.3",
+		"hackoladePlugin": "1.0.1"
+	},
+	"contributes": {
+		"target": {
+			"applicationTarget": "DocumentDB",
+			"title": "DocumentDB",
+			"versions": [
+				"3.6.0",
+				"4.0.0"
+			]
+		},
+		"features": {
+			"nestedCollections": false,
+			"forwardEngineering": {
+				"jsonSchema": {
+					"keepParentType": {
+						"objectId": {
+							"type": "string",
+							"pattern": "^[a-fA-F0-9]{24}$"
+						},
+						"regex": "string",
+						"date": {
+							"type": "string",
+							"format": "date-time"
+						},
+						"timestamp": {
+							"type": "string",
+							"format": "date-time"
+						},
+						"binary": {
+							"type": "string",
+							"mediaType": "image/png",
+							"contentEncoding": "base64"
+						},
+						"JavaScript": "string",
+						"JavaScript(w/scope)": "string",
+						"symbol": "string",
+						"minKey": "number",
+						"maxKey": "number"
+					}
+				}
+			},
+			"enableReverseEngineering": true,
+			"enableForwardEngineering": true,
+			"enableReverseEngineeringDetectionSchemaByContent": false,
+			"enableReversingDateTypeAsISODate": true
+		}
+	},
+	"description": "Hackolade plugin for Amazon DocumentDB"
+}

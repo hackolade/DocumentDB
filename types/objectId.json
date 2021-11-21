@@ -1,0 +1,16 @@
+{
+	"name": "objectId",
+	"erdAbbreviation": "<oid>",
+	"dtdAbbreviation": "{_id}",
+	"useSample": true,
+	"defaultValues": {
+		"primaryKey": true,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"default": "",
+		"sample": ""
+	}
+}

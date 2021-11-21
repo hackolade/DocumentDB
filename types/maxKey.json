@@ -1,0 +1,14 @@
+{
+	"name": "maxKey",
+	"erdAbbreviation": "<maxK>",
+	"dtdAbbreviation": "{maxK}",
+	"useSample": true,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": []
+	}
+}

@@ -1,0 +1,15 @@
+{
+	"name": "null",
+	"erdAbbreviation": "<null>",
+	"dtdAbbreviation": "{null}",
+	"useSample": false,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": [],
+		"format": ""
+	}
+}

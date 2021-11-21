@@ -1,0 +1,17 @@
+{
+	"name": "binary",
+	"erdAbbreviation": "<bin>",
+	"dtdAbbreviation": "{BIN}",
+	"useSample": false,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": [],
+		"default": "",
+		"enum": [],
+		"sample": ""
+	}
+}

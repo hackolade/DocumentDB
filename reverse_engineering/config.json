@@ -1,0 +1,13 @@
+/* 
+{
+	"scenario": "getDatabases|getDocumentKinds|connectToDB(default)"	
+} 
+*/
+{
+	"errors": {
+		"NO_DATABASES": "There are no clusters in the DocumentDB instance",
+		"WRONG_CONNECTION": "Can not connect to the DocumentDB instance"
+	},
+	"excludeDocKind": ["id"],
+	"scenario": "getDatabases"
+}

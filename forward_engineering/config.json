@@ -1,0 +1,25 @@
+{
+	"extension": "js",
+	"filterName": "MongoDB script",
+	"namePrefix": "CosmosDB Mongo API",
+	"hasUpdateScript": false,
+	"mode": "javascript",
+	"level": {
+		"entity": true,
+		"container": true,
+		"view": false
+	},
+	"additionalOptions": [{
+		"id": "INCLUDE_SAMPLES",
+		"value": true,
+		"name": "Include sample data",
+		"align": "right",
+		"level": {
+			"entity": false
+		}
+	}],
+	"splitView": {
+		"byAdditionalOptions": ["INCLUDE_SAMPLES"]
+	},
+	"applyScriptToInstance": true
+}

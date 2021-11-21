@@ -1,0 +1,20 @@
+{
+	"name": "array",
+	"erdAbbreviation": "<array>",
+	"dtdAbbreviation": "[...]",
+	"sample": ["sample"],
+	"useSample": true,
+	"defaultValues": {
+		"properties": [],
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": [],
+		"additionalItems": true,
+		"minItems": "",
+		"maxItems": "",
+		"uniqueItems": false
+	}
+}

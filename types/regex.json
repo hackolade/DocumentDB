@@ -1,0 +1,16 @@
+{
+	"name": "regex",
+	"erdAbbreviation": "<rgx>",
+	"dtdAbbreviation": "{rgx}",
+	"useSample": true,
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignEntity": "",
+		"foreignField": [],
+		"default": "",
+		"sample": ""
+	}
+}
