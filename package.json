@@ -39,9 +39,6 @@
 							"mediaType": "image/png",
 							"contentEncoding": "base64"
 						},
-						"JavaScript": "string",
-						"JavaScript(w/scope)": "string",
-						"symbol": "string",
 						"minKey": "number",
 						"maxKey": "number"
 					}
