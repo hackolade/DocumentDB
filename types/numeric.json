@@ -21,5 +21,21 @@
 		"divisibleBy": "",
 		"enum": [],
 		"sample": ""
-	}
+	},
+	"descriptor": [{
+		"schema": {
+			"mode": "integer32"
+		},
+		"capacity": 4
+	}, {
+		"schema": {
+			"mode": "integer64"
+		},
+		"capacity": 8
+	}, {
+		"schema": {
+			"mode": "double"
+		},
+		"capacity": 8
+	}]
 }

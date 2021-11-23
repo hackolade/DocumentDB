@@ -18,9 +18,7 @@
 		"indexes": []
 	},
 	"collection": {
-		"collectionName": "New collection",
-		"collectionUsers": [],
-		"collation": {}
+		"collectionName": "New collection"
 	},
 	"field": {
 		"name": "New field"
