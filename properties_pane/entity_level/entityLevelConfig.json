@@ -119,6 +119,19 @@ making sure that you maintain a proper JSON format.
 		"lowerTab": "Details",
 		"structure": [
 			{
+				"propertyKeyword": "collectionName",
+				"validation": {
+					"regex": "^[\\s\\S]{1,57}$",
+					"required": true
+				}
+			},
+			{
+				"propertyKeyword": "code",
+				"validation": {
+					"regex": "^[\\s\\S]{1,57}$"
+				}
+			},
+			{
 				"propertyName": "Description",
 				"propertyKeyword": "description",
 				"propertyTooltip": "description",

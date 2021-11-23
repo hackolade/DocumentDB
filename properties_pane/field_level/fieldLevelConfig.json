@@ -118,7 +118,19 @@ making sure that you maintain a proper JSON format.
 	"lowerTab": "JsonDetails",
 	"structure": {
 		"objectId": [
-			"name",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -132,7 +144,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"string": [
-			"name",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -152,7 +176,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"numeric": [
-			"name",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -187,8 +223,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"boolean": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -199,8 +246,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"object": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -212,8 +270,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"array": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -226,8 +295,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"binary": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -237,8 +317,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"date": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -257,8 +348,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"timestamp": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -269,8 +371,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"regex": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -281,16 +394,38 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"null": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
 			"comments"
 		],
 		"minKey": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",
@@ -301,8 +436,19 @@ making sure that you maintain a proper JSON format.
 			"comments"
 		],
 		"maxKey": [
-			"name",
-			"code",
+			{
+				"fieldKeyword": "name",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$",
+					"required": true
+				}
+			},
+			{
+				"fieldKeyword": "code",
+				"validation": {
+					"regex": "^(\\$id|\\$ref|\\$db|(?![\\s\\S]*\\.)(?!\\$[\\s\\S]*)([\\s\\S]*))$"
+				}
+			},
 			"schemaId",
 			"description",
 			"type",

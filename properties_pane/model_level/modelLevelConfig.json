@@ -170,7 +170,10 @@ making sure that you maintain a proper JSON format.
 					{
 						"propertyName": "Identifier",
 						"propertyKeyword": "dbInstanceIdentifier",
-						"propertyType": "text"
+						"propertyType": "text",
+						"validation": {
+							"regex": "^(?![A-Za-z]([A-Za-z0-9]-?){0,61}-$)[A-Za-z]([A-Za-z0-9]-?){0,62}$"
+						}
 					},
 					{
 						"propertyName": "Role",
@@ -187,7 +190,10 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Cluster identifier",
 				"propertyKeyword": "DBClusterIdentifier",
-				"propertyType": "text"
+				"propertyType": "text",
+				"validation": {
+					"regex": "^(?![A-Za-z]([A-Za-z0-9]-?){0,61}-$)[A-Za-z]([A-Za-z0-9]-?){0,62}$"
+				}
 			},
 			{
 				"propertyName": "ARN",
