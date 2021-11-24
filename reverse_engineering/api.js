@@ -12,73 +12,90 @@ const ERROR_HANDLE_BUCKET = 6;
 const ERROR_COLLECTION_DATA = 7;
 
 module.exports = {
-	connect: function(connectionInfo, logger, cb){
+	connect(connectionInfo, logger) {
 		logger.clear();
 		logger.log('info', connectionInfo, 'Reverse-Engineering connection settings', connectionInfo.hiddenKeys);
 
-		connectionHelper.connect(connectionInfo)
-			.then(connection => cb(null, connection))
-			.catch(err => {
-				logger.log('error', createError(ERROR_CONNECTION, err), "Connection error");
-				return cb({
-					message: err.code === 18 ? 'Authentication failed. Please, check connection settings and try again' : err.message,
-					stack: err.stack,
-				});
-			});
+		return connectionHelper.connect(connectionInfo);
 	},
 
-	disconnect: function(connectionInfo, logger, cb){
+	disconnect: function(connectionInfo, logger, cb) {
+		connectionHelper.close();
 		cb()
 	},
 
-	testConnection: function(connectionInfo, logger, cb){
-		this.connect(connectionInfo, logger, (err, result) => {
-			if (err) {
-				cb(err);
-			} else {
-				cb(false);
-				result.close();
-			}
+	async testConnection(connectionInfo, logger, cb){
+		const log = createLogger({
+			title: 'Test connection',
+			hiddenKeys: connectionInfo.hiddenKeys,
+			logger,
 		});
+
+		try {
+			logger.clear();
+			logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+
+			await connectionHelper.connect(connectionInfo);
+
+			log.info('Connected successfully');
+
+			cb();
+		} catch (error) {
+			log.error(error);
+			
+			return cb({
+				message: error.message,
+				stack: error.stack,
+			});
+		}
 	},
 
-	getDbCollectionsNames: function(connectionInfo, logger, cb, app) {
-		const _ = app.require('lodash');
-		const async = app.require('async');
-		this.connect(connectionInfo, logger, (err, connection) => {
-			if (err) {
-				logger.log('error', err);
-				return cb(err)
-			} else {
-				const db = connection.db(connectionInfo.database);
-				
-				if (!db) {
-					connection.close();
-					return cb(createError(ERROR_DB_CONNECTION, `Failed connection to database ${connectionInfo.database}`));
+	async getDbCollectionsNames(connectionInfo, logger, cb, app) {
+		const log = createLogger({
+			title: 'Retrieving databases and collections information',
+			hiddenKeys: connectionInfo.hiddenKeys,
+			logger,
+		});
+
+		try {
+			const _ = app.require('lodash');
+			const async = app.require('async');
+			
+			logger.clear();
+			logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+			
+			const connection = await connectionHelper.connect(connectionInfo);
+
+			const databases = await connection.getDatabases();
+
+			async.mapSeries(databases, (database, next) => {
+				connection.getCollections(database.name).then(
+					collections => {
+						const dbCollections = collections.map(collection => collection.name);
+
+						next(null, {
+							dbName: database.name,
+							dbCollections,
+							isEmpty: dbCollections.length === 0,
+						});
+					},
+					error => next(error),
+				);
+			}, (error, result) => {
+				if (error) {
+					log.error(error);
+					cb({ message: error.message, stack: error.stack });
+					return;
 				}
 
-				logger.log('info', { Database: connectionInfo.database }, 'Getting collections list for current database', connectionInfo.hiddenKeys);
-				
-				db.listCollections().toArray((err, collections) => {
-					if(err){
-						logger.log('error', err);
-						connection.close();
-						return cb(createError(ERROR_LIST_COLLECTION, err));
-					} else {
-						let collectionNames = (connectionInfo.includeSystemCollection ? collections : filterSystemCollections(collections)).map(item => item.name);
-						logger.log('info', collectionNames, "Collection list for current database", connectionInfo.hiddenKeys);
-						handleBucket(_, async, connectionInfo, collectionNames, db, function (err, items) {
-							connection.close();
-							if (err) {
-								cb(err);
-							} else {
-								cb(null, items);
-							}
-						});
-					}
-				});
-			}
-		});
+				log.info('Names retrieved successfully');
+
+				cb(null, result);
+			});
+		} catch (error) {
+			log.error(error);
+			cb({ message: error.message, stack: error.stack });
+		}
 	},
 
 	getDbCollectionsData: function(data, logger, cb, app){
@@ -516,3 +533,22 @@ function createError(code, message) {
 
 	return {code, message};
 }
+
+const createLogger = ({ title, logger, hiddenKeys }) => {
+	return {
+		info(message) {
+			logger.log('info', { message }, title, hiddenKeys);
+		},
+
+		progress(message, dbName = '', tableName = '') {
+			logger.progress({ message, containerName: dbName, entityName: tableName });
+		},
+
+		error(error) {
+			logger.log('error', {
+				message: error.message,
+				stack: error.stack,
+			}, title);
+		}
+	};
+};
