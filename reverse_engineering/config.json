@@ -9,5 +9,6 @@
 		"WRONG_CONNECTION": "Can not connect to the DocumentDB instance"
 	},
 	"excludeDocKind": ["id"],
-	"scenario": "connectToDB"
+	"scenario": "connectToDB",
+	"typeOfSerializer": "bson"
 }
