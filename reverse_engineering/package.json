@@ -4,10 +4,10 @@
   "description": "",
   "author": "Hackolade",
   "dependencies": {
-    "mongodb": "^3.6.1",
-    "axios": "^0.21.1",
-    "qs": "^6.9.6",
-    "bson": "1.1.5"
+    "bson": "^1.1.6",
+    "mongodb": "^3.7.3",
+    "mongodb-collection-sample": "^4.5.1",
+    "tunnel-ssh": "^4.1.6"
   },
   "installed": true
 }
