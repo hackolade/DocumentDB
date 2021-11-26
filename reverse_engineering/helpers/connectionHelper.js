@@ -221,6 +221,50 @@ function createConnection(connection) {
 		});
 	};
 
+	const findOne = (dbName, collectionName, query) => {
+		return new Promise((resolve, reject) => {
+			const db = connection.db(dbName);
+			const collection = db.collection(collectionName);
+	
+			collection.findOne(query, (err, result) => {
+				if (err) {
+					return reject(err);
+				} else {
+					return resolve(result);
+				}
+			});
+		});
+	};
+
+	const hasPermission = async (dbName, collectionName) => {
+		try {
+			await findOne(dbName, collectionName);
+
+			return true;
+		} catch (e) {
+			if (e.code === 13) {
+				return false;
+			}
+
+			throw e;
+		}
+	};
+
+	const getIndexes = (dbName, collectionName) => {
+		return new Promise((resolve, reject) => {
+			const db = connection.db(dbName);
+			const collection = db.collection(collectionName);
+
+			collection.indexes({ full: true }, (err, indexes) => {
+				if (err) {
+					return reject(err);
+				}
+
+				return resolve(indexes);
+			});
+		});
+	};
+
 	return {
 		getDatabases,
 		getCollections,
@@ -228,6 +272,9 @@ function createConnection(connection) {
 		getDataStream,
 		getCount,
 		getRandomDocuments,
+		findOne,
+		hasPermission,
+		getIndexes,
 	};
 }
 
