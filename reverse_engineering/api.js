@@ -3,6 +3,7 @@
 const connectionHelper = require('./helpers/connectionHelper');
 const { createLogger, getSystemInfo } = require('./helpers/logHelper');
 const bson = require('bson');
+const awsHelper = require('./helpers/awsHelper');
 
 module.exports = {
 	disconnect: function(connectionInfo, logger, cb) {
@@ -47,7 +48,10 @@ module.exports = {
 		try {
 			const _ = app.require('lodash');
 			const async = app.require('async');
-			
+			const awsSdk = app.require('aws-sdk');
+
+			awsHelper(connectionInfo, awsSdk);
+
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo);
@@ -114,6 +118,7 @@ module.exports = {
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
 			const maxTimeMS = Number(data.queryRequestTimeout) || 120000;
+			const awsConnection = awsHelper();
 
 			log.info({
 				title: 'Parameters',
@@ -123,10 +128,36 @@ module.exports = {
 
 			const connection = await connectionHelper.connect();
 			const dbInfo = await connection.getBuildInfo();
-			const modelInfo = {
+			let modelInfo = {
 				version: dbInfo.version,
 			};
 			log.progress('Start reverse-engineering');
+
+			try {
+				log.info('Getting cluster information');
+				log.progress('Getting cluster information ...');
+
+				const cluster = await awsConnection.getCluster();
+				if (!cluster) {
+					throw new Error('Cluster doesn\'t exist in the chosen region.');
+				}
+				const tags = await awsConnection.tags(cluster['DBClusterArn']);
+				const clusterData = getClusterData(cluster);
+				modelInfo = {
+					...modelInfo,
+					'source-region': awsConnection.getRegion(),
+					...clusterData,
+					tags: tags['TagList']?.map(tag => ({
+						tagName: tag['Key'],
+						tagValue: tag['Value'],
+					})),
+				};
+			} catch (e) {
+				log.progress('[color:red]Error of getting cluster information');
+				log.info('Cannot get information about the cluster from AWS. Please, check AWS credentials in the connection settings.');
+				log.error(e);
+			}
+			
 
 			const result = await async.reduce(collectionData.dataBaseNames, [], async (result, dbName) => {
 				return await async.reduce(collectionData.collections[dbName], result, async (result, collectionName) => {
@@ -358,5 +389,62 @@ const getGeoIndexVersion = (version) => {
 	
 	return {
 		'2dsphereIndexVersion': indexVersion,
+	};
+};
+
+const getClusterData = (cluster) => {
+	return {
+		dbInstances: cluster['DBClusterMembers']?.map(instance => ({
+			dbInstanceIdentifier: instance['DBInstanceIdentifier'],
+			dbInstanceRole: instance['IsClusterWriter'] ? 'Primary' : 'Replica',
+		})),
+		DBClusterIdentifier: cluster['DBClusterIdentifier'],
+		DBClusterArn: cluster['DBClusterArn'],
+		Endpoint: cluster['Endpoint'],
+		ReaderEndpoint: cluster['ReaderEndpoint'],
+		MultiAZ: cluster['MultiAZ'],
+		Port: cluster['Port'] ?? 27017,
+		DBClusterParameterGroup: cluster['DBClusterParameterGroup'],
+		DbClusterResourceId: cluster['DbClusterResourceId'],
+		StorageEncrypted: cluster['StorageEncrypted'],
+		BackupRetentionPeriod: String(cluster['BackupRetentionPeriod'] ?? ''),
+		auditLog: false,
+		maintenance: Boolean(cluster['PreferredMaintenanceWindow']),
+		...(cluster['PreferredMaintenanceWindow'] ? parseMaintenance(cluster['PreferredMaintenanceWindow']) : {}),
+	};
+};
+
+const parseMaintenance = (period) => {
+	const getDay = (d) => {
+		const day = d.slice(0, 3);
+
+		return ({
+			sun: 'Sunday',
+			mon: 'Monday',
+			tue: 'Tuesday',
+			wed: 'Wednesday',
+			thu: 'Thursday',
+			fri: 'Friday',
+			sat: 'Saturday',
+		})[day] || 'Sunday';
+	};
+	const getTime = (d) => {
+		const time = d.slice(4);
+		const [hours, minutes] = time.split(':');
+		const date = new Date(0);
+
+		date.setHours(+hours);
+		date.setMinutes(+minutes);
+
+		return date;
+	};
+
+	const [from, to] = period.split('-');
+	
+	return {
+		startDay: getDay(from),
+		startHour: String(getTime(from).getHours()).padStart(2, '0'),
+		startMinute: String(getTime(from).getMinutes()).padStart(2, '0'),
+		duration: String((getTime(to) - getTime(from)) / (1000 * 60 * 60)),
 	};
 };
