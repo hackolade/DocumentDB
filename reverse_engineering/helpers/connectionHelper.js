@@ -166,6 +166,7 @@ function createConnection(connection) {
 	}) => {
 		return new Promise((resolve, reject) => {
 			const RANDOM_SAMPLING_ERROR_CODE = 28799;
+			const INTERRUPTED_OPERATION = 11601;
 			let sampledDocs = [];
 			const options = {
 				size: Number(limit),
@@ -182,6 +183,13 @@ function createConnection(connection) {
 							'MongoDB Error: $sample stage could not find a non-duplicate document after 100 while using a random cursor. Please try again.',
 					};
 				}
+
+				if (err.code === INTERRUPTED_OPERATION) {
+					const newError = new Error('MongoDB Error: ' + err.message + '. Please, try to increase query timeout (Options -> Reverse-Engineering) and try again.');
+					newError.stack = err.stack;
+					err = newError;
+				}
+
 				streamError = err;
 
 				reject(err);
