@@ -225,7 +225,15 @@ module.exports = {
 	}
 };
 
-const serialize = (data) => (new bson()).serialize(data);
+const serialize = (data) => {
+	const b = new bson();
+	
+	if (!data) {
+		data = {};
+	}
+
+	return b.serialize(data)
+};
 
 const safeParse = (data) => {
 	try {
@@ -293,9 +301,11 @@ function filterSystemCollections(collections) {
 
 function getSampleDocSize(count, recordSamplingSettings) {
 	let per = recordSamplingSettings.relative.value;
-	return (recordSamplingSettings.active === 'absolute')
-		? Math.max(count, recordSamplingSettings.absolute.value)
+	const limit = (recordSamplingSettings.active === 'absolute')
+		? Math.min(count, recordSamplingSettings.absolute.value)
 		: Math.round( count / 100 * per);
+
+	return Math.min(recordSamplingSettings.maxValue || 10000, limit);
 }
 
 function getJsonSchema(doc) {
