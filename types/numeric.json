@@ -24,12 +24,12 @@
 	},
 	"descriptor": [{
 		"schema": {
-			"mode": "integer32"
+			"mode": "int32"
 		},
 		"capacity": 4
 	}, {
 		"schema": {
-			"mode": "integer64"
+			"mode": "int64"
 		},
 		"capacity": 8
 	}, {
