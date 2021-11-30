@@ -170,7 +170,7 @@ module.exports = {
 						return result;
 					}
 
-					log.info({ message: 'Getting documents for sampling', dbName, collectionName });
+					log.info({ message: 'Getting documents for sampling', dbName, collectionName, count: count });
 					log.progress('Getting documents for sampling', dbName, collectionName);
 
 					const limit = getSampleDocSize(count, recordSamplingSettings);
@@ -319,7 +319,7 @@ function getJsonSchema(doc) {
 	} else if (doc instanceof bson.Long) {
 		return {
 			type: 'numeric',
-			mode: 'integer64'
+			mode: 'int64'
 		};
 	} else if (typeof doc === "number" && (doc % 1) !== 0) {
 		return {
@@ -329,7 +329,7 @@ function getJsonSchema(doc) {
 	} else if (typeof doc === "number" && Math.abs(doc) < 2**32) {
 		return {
 			type: 'numeric',
-			mode: 'integer32'
+			mode: 'int32'
 		};
 	} else if (doc && typeof doc === 'object') {
 		const properties = Object.keys(doc).reduce((schema, key) => {

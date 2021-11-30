@@ -199,8 +199,8 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "select",
 				"options": [
 					"",
-					"integer32",
-					"integer64",
+					"int32",
+					"int64",
 					"double"
 				]
 			},
