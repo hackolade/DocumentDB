@@ -170,10 +170,11 @@ module.exports = {
 						return result;
 					}
 
-					log.info({ message: 'Getting documents for sampling', dbName, collectionName, count: count });
+					const limit = getSampleDocSize(count, recordSamplingSettings);
+
+					log.info({ message: 'Getting documents for sampling', dbName, collectionName, countOfDocuments: count, documentsToSample: limit });
 					log.progress('Getting documents for sampling', dbName, collectionName);
 
-					const limit = getSampleDocSize(count, recordSamplingSettings);
 					const documents = await connection.getRandomDocuments(dbName, collectionName, {
 						maxTimeMS,
 						limit,
@@ -303,7 +304,7 @@ function getSampleDocSize(count, recordSamplingSettings) {
 	let per = recordSamplingSettings.relative.value;
 	const limit = (recordSamplingSettings.active === 'absolute')
 		? Math.min(count, recordSamplingSettings.absolute.value)
-		: Math.round( count / 100 * per);
+		: Math.ceil( count / 100 * per);
 
 	return Math.min(recordSamplingSettings.maxValue || 10000, limit);
 }
