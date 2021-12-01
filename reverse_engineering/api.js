@@ -310,7 +310,9 @@ function getSampleDocSize(count, recordSamplingSettings) {
 }
 
 function getJsonSchema(doc) {
-	if (Array.isArray(doc)) {
+	if (doc instanceof bson.ObjectID || doc instanceof bson.DBRef) {
+		return;
+	} else if (Array.isArray(doc)) {
 		const items = getJsonSchema(doc[0]);
 		if (items) {
 			return {

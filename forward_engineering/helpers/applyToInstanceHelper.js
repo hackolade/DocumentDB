@@ -95,6 +95,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection })
 		MinKey: bson.MinKey,
 		MaxKey: bson.MaxKey,
 		Code: bson.Code,
+		Timestamp: bson.Timestamp,
 
 		useDb(dbName) {
 			currentDb = dbName;
