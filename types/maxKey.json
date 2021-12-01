@@ -3,6 +3,7 @@
 	"erdAbbreviation": "<maxK>",
 	"dtdAbbreviation": "{maxK}",
 	"useSample": true,
+	"sample": "$__maxKey_1",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",

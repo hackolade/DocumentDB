@@ -3,6 +3,7 @@
 	"erdAbbreviation": "<rgx>",
 	"dtdAbbreviation": "{rgx}",
 	"useSample": true,
+	"sample": "$__rgxp_/([A-Z]+)/g",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",

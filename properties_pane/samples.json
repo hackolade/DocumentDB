@@ -1,0 +1,37 @@
+[
+	{
+		"validateAs": "number",
+		"constraints": {
+			"min": 4294967296,
+			"max": 18446744073709552000,
+			"maxPrecision": 0
+		},
+		"dependency": {
+			"key": "mode",
+			"value": "int64"
+		}
+	},
+	{
+		"validateAs": "number",
+		"constraints": {
+			"min": 0,
+			"max": 4294967296,
+			"maxPrecision": 0
+		},
+		"dependency": {
+			"key": "mode",
+			"value": "int32"
+		}
+	},
+	{
+		"validateAs": "number",
+		"constraints": {
+			"maxPrecision": 9,
+			"maxScale": 3
+		},
+		"dependency": {
+			"key": "mode",
+			"value": "double"
+		}
+	}
+]

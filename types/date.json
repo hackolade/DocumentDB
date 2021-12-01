@@ -3,6 +3,7 @@
 	"erdAbbreviation": "<date>",
 	"dtdAbbreviation": "{dt}",
 	"useSample": true,
+	"sample": "$__date_2016-04-08T15:06:21.595Z",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",
