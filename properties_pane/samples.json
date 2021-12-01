@@ -3,8 +3,7 @@
 		"validateAs": "number",
 		"constraints": {
 			"min": 4294967296,
-			"max": 18446744073709552000,
-			"maxPrecision": 0
+			"max": 18446744073709552000
 		},
 		"dependency": {
 			"key": "mode",
@@ -14,9 +13,8 @@
 	{
 		"validateAs": "number",
 		"constraints": {
-			"min": 0,
-			"max": 4294967296,
-			"maxPrecision": 0
+			"min": -4294967296,
+			"max": 4294967296
 		},
 		"dependency": {
 			"key": "mode",
@@ -26,8 +24,8 @@
 	{
 		"validateAs": "number",
 		"constraints": {
-			"maxPrecision": 9,
-			"maxScale": 3
+			"maxPrecision": 24,
+			"maxScale": 24
 		},
 		"dependency": {
 			"key": "mode",
