@@ -2,7 +2,8 @@
 	"name": "binary",
 	"erdAbbreviation": "<bin>",
 	"dtdAbbreviation": "{BIN}",
-	"useSample": false,
+	"useSample": true,
+	"sample": "$__bindata_1_232sa3d323sd232a32sda3s2d3a2s1d23s21d3sa",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",

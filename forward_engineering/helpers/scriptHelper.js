@@ -1,4 +1,6 @@
 
+const schemaHelper = require('./schemaHelper');
+
 const isObjectEmpty = obj => Object.keys(obj).length === 0;
 
 const filterObject = obj => Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== undefined));
@@ -13,18 +15,18 @@ const getIndexType = (indexType) => {
 	return ({
 		'descending': -1,
 		'ascending': 1,
-		'2dsphere': '2dsphere',
+		'2DSphere': '2dsphere',
 	})[indexType] || 1;
 };
 
 const createIndex = (index) => {
-	let indexKeys = index?.indexKey;
+	let indexKeys = index?.key;
 
 	if (!Array.isArray(indexKeys)) {
 		return '';
 	}
 
-	indexKeys = indexKeys.filter(index => index.name);
+	indexKeys = indexKeys.filter(index => index.name && index.isActivated);
 
 	if (indexKeys.length === 0) {
 		return '';
@@ -35,48 +37,13 @@ const createIndex = (index) => {
 			...result,
 			[indexKey.name]: getIndexType(indexKey.type),
 		}), {}),
-		{
+		filterObject({
 			name: index.name,
-		}
-	);
-};
-
-const createTtlIndex = (containerData = {}) => {
-	if (containerData.TTL === 'Off' || !containerData.TTL) {
-		return '';
-	}
-
-	return createIndexStatement({
-		_ts: 1,
-	}, filterObject({
-		name: 'ttl',
-		expireAfterSeconds: containerData.TTL === 'On (no default)'
-			? -1
-			: containerData.TTLseconds,
-	}));
-};
-
-const createUniqueIndex = (uniqueKeys, shardKey) => {
-	if (!Array.isArray(uniqueKeys)) {
-		return '';
-	}
-
-	uniqueKeys = uniqueKeys.filter(index => index.name);
-
-	if (uniqueKeys.length === 0) {
-		return '';
-	}
-
-	return createIndexStatement(
-		uniqueKeys.reduce((result, indexKey) => ({
-			...result,
-			[indexKey.name]: 1,
-		}), shardKey ? {
-			[shardKey]: 1,
-		} : {}),
-		{
-			unique: true,
-		}
+			unique: index.unique ? index.unique : undefined,
+			sparse: index.sparse ? index.sparse : undefined,
+			background: index.background ? index.background : undefined,
+			expireAfterSeconds: index.expireAfterSeconds ? index.expireAfterSeconds : undefined,
+		})
 	);
 };
 
@@ -84,71 +51,74 @@ const getContainerName = (containerData) => {
 	return containerData[0]?.code || containerData[0]?.name;
 };
 
+const getCollectionName = (entityData) => {
+	return entityData[0]?.code || entityData[0]?.collectionName;
+};
+
 const getCollection = (name) => {
 	return `db.getCollection("${name}")`;
 };
 
-const getIndexes = (containerData) => {
-	const indexes = containerData[1]?.indexes || [];
-	const uniqueIndexes = containerData[0]?.uniqueKey || [];
-	const shardKey = containerData[0]?.shardKey?.[0]?.name;
+const getIndexes = (entityData, data) => {
+	const indexes = entityData[1]?.Indxs || [];
 
-	return [
-		...uniqueIndexes.map(uniqueKey => createUniqueIndex(uniqueKey.attributePath, shardKey)),
-		...indexes.filter(index => index.isActivated !== false).map(createIndex),
-		createTtlIndex(containerData[0]),
-	].filter(Boolean).map(index => getCollection(getContainerName(containerData)) + '.' + index).join('\n\n');
+	return indexes
+		.filter(index => index.isActivated !== false)
+		.map(fillKeys(data))
+		.map(createIndex)
+		.filter(Boolean)
+		.map(index => getCollection(getCollectionName(entityData)) + '.' + index)
+		.join('\n\n');
 };
 
-const createShardKey = ({ containerData }) => {
-	const shardKey = containerData[0]?.shardKey?.[0]?.name;
-
-	if (!shardKey) {
-		return '';
-	}
-
-	const dbId = getDbId(containerData);
-	const name = getContainerName(containerData);
-
-	return `use admin;\ndb.runCommand({ shardCollection: "${dbId}.${name}", key: { "${shardKey}": "hashed" }});`
-};
-
-const getDbId = (data) => {
-	return data[0]?.dbId;
+const createCollection = (entityData) => {
+	return `db.createCollection("${getCollectionName(entityData)}");`;
 };
 
 const getScript = (data) => {
-	const name = getDbId(data.containerData);
-	const useDb = name ? `use ${name};` : '';
-	const indexes = getIndexes(data.containerData);
+	const indexes = getIndexes(data.entityData, data);
+	const createStatement = createCollection(data.entityData);
 
-	return [createShardKey(data), useDb, indexes].filter(Boolean).join('\n\n');
+	return [createStatement, indexes].filter(Boolean).join('\n\n');
 };
 
-const updateSample = (sample, containerData, entityData) => {		
-	const docType = containerData?.docTypeName;
-
-	if (!docType) {
-		return sample;
-	}
-
+const updateSample = (sample) => {		
 	let data = JSON.parse(encodedExtendedTypes(sample));
 
 	return decodedExtendedTypes(JSON.stringify({
 		...data,
-		[docType]: entityData.code || entityData.collectionName,
 	}, null, 2));
 };
 
-const insertSample = ({ containerData, entityData, sample }) => {
-	return getCollection(getContainerName(containerData)) + `.insert(${updateSample(sample, containerData[0], entityData?.[0] || {})});`;
+const fillKeys = ({ jsonSchema, definitions }) => (index) => {
+	const hashTable = schemaHelper.getNamesByIds(
+		index.key.map(key => key.keyId),
+		[
+			jsonSchema,
+			definitions.internal,
+			definitions.model,
+			definitions.external,
+		]
+	);
+
+	return {
+		...index,
+		key: index.key.map(key => {
+			return {
+				...key,
+				...(hashTable[key.keyId] || {})
+			};
+		}),
+	};
+};
+
+const insertSample = ({ entityData, sample }) => {
+	return getCollection(getCollectionName(entityData)) + `.insert(${updateSample(sample)});`;
 };
 
 const insertSamples = (data) => {
-	const name = getDbId(data.containerData);
-	const useDb = name ? `use ${name};` : '';
+	const useDb = useDbStatement(data.containerData);
 	const samples = data.entities.map(entityId => insertSample({
-		containerData: data.containerData,
 		entityData: (data.entityData[entityId] || []),
 		sample: data.jsonData[entityId],
 	})).join('\n\n');
@@ -233,22 +203,26 @@ function encodedExtendedTypes(data, returnInStr) {
 				return lineBeginning + `$__js_${b}` + lineEnding;
 			},
 		)
-		.replace(/\"type\": \"minKey\",\s*.*?\"sample\": \{\s*\"\$minKey\": (\d*)\s*\}/gi, function (a, b) {
-			return a.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/, function (a, b) {
-				return lineBeginning + `$__minKey_${b}` + lineEnding;
-			});
+		.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/, function (a, b) {
+			return lineBeginning + `$__minKey_${b}` + lineEnding;
 		})
-		.replace(/\"type\": \"maxKey\",\s*.*?\"sample\": \{\s*\"\$maxKey\": (\d*)\s*\}/gi, function (a, b) {
-			return a.replace(/\{\s*\"\$maxKey\": (\d*)\s*\}/, function (a, b) {
-				return lineBeginning + `$__maxKey_${b}` + lineEnding;
-			});
+		.replace(/\{\s*\"\$maxKey\": (\d*)\s*\}/, function (a, b) {
+			return lineBeginning + `$__maxKey_${b}` + lineEnding;
 		});
 
 	return encodedData;
+};
+
+const useDbStatement = (containerData) => {
+	const name = getContainerName(containerData);
+	const useDb = name ? `use ${name};` : '';
+
+	return useDb;
 };
 
 module.exports = {
 	getScript,
 	insertSample,
 	insertSamples,
+	useDbStatement,
 };

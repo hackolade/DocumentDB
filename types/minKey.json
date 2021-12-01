@@ -3,6 +3,7 @@
 	"erdAbbreviation": "<minK>",
 	"dtdAbbreviation": "{minK}",
 	"useSample": true,
+	"sample": "$__minKey_1",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",

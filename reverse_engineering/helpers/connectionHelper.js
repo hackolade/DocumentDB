@@ -42,7 +42,7 @@ const connectViaSsh = (info) => new Promise((resolve, reject) => {
 function generateConnectionParams(connectionInfo){
 	if ((connectionInfo.sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' && connectionInfo.ssh) || connectionInfo.sslType === 'UNVALIDATED_SSL') {
 		return {
-			url: `mongodb://${connectionInfo.username}:${connectionInfo.password}@${connectionInfo.host}:${connectionInfo.port}/`,
+			url: `mongodb://${connectionInfo.username}:${connectionInfo.password}@${connectionInfo.host}:${connectionInfo.port}/?retryWrites=false`,
 			options: {
 				tls: true,
 				tlsAllowInvalidHostnames: true,
@@ -166,6 +166,7 @@ function createConnection(connection) {
 	}) => {
 		return new Promise((resolve, reject) => {
 			const RANDOM_SAMPLING_ERROR_CODE = 28799;
+			const INTERRUPTED_OPERATION = 11601;
 			let sampledDocs = [];
 			const options = {
 				size: Number(limit),
@@ -182,6 +183,13 @@ function createConnection(connection) {
 							'MongoDB Error: $sample stage could not find a non-duplicate document after 100 while using a random cursor. Please try again.',
 					};
 				}
+
+				if (err.code === INTERRUPTED_OPERATION) {
+					const newError = new Error('MongoDB Error: ' + err.message + '. Please, try to increase query timeout (Options -> Reverse-Engineering) and try again.');
+					newError.stack = err.stack;
+					err = newError;
+				}
+
 				streamError = err;
 
 				reject(err);
@@ -265,6 +273,34 @@ function createConnection(connection) {
 		});
 	};
 
+	const getCollection = (dbName, collectionName) => {
+		const db = connection.db(dbName);
+		const collection = db.collection(collectionName);
+		
+		return {
+			createIndex(fields, options) {
+				return collection.createIndex(fields, options);
+			},
+			insertOne(data) {
+				return collection.insertOne(data);
+			}
+		};
+	};
+
+	const createCollection = async (dbName, collectionName) => {
+		const COLLECTION_ALREADY_EXISTS_ERROR = 48;
+		const db = connection.db(dbName);
+
+		try {
+			return await db.createCollection(collectionName);
+		} catch (error) {
+			if (error.code === COLLECTION_ALREADY_EXISTS_ERROR) {
+				return;
+			}
+			throw error;
+		}
+	};
+
 	return {
 		getDatabases,
 		getCollections,
@@ -275,6 +311,8 @@ function createConnection(connection) {
 		findOne,
 		hasPermission,
 		getIndexes,
+		getCollection,
+		createCollection,
 	};
 }
 

@@ -1,69 +1,70 @@
 const vm = require('vm');
 const bson = require('../../reverse_engineering/node_modules/bson');
 const connectionHelper = require('../../reverse_engineering/helpers/connectionHelper');
+const loggerHelper = require('../../reverse_engineering/helpers/logHelper');
 
 const applyToInstanceHelper = {
 	async applyToInstance(data, logger, cb) {
-		let connection;
-		
-		try {
-			if (!data.containerData?.[0]?.dbId) {
-				throw new Error('Database Id is required. Please, set it on the collection properties pane.');
-			}
+		const log = loggerHelper.createLogger({
+			title: 'Applying to instance',
+			hiddenKeys: data.hiddenKeys,
+			logger,
+		});
 
-			connection = await connect(data, logger);
+		try {
+			logger.clear();
+			log.info(loggerHelper.getSystemInfo(data.appVersion));
+			log.info(data);
+
+			const connection = await connectionHelper.connect(data);
 
 			const mongodbScript = replaceUseCommand(convertBson(data.script));
 			await runMongoDbScript({
 				mongodbScript,
-				logger,
+				logger: log,
 				connection
 			});
 
-			connection.close();
+			connectionHelper.close();
 			cb(null);
 		} catch (error) {
-			error = {
+			log.error(error);
+			connectionHelper.close();
+
+			cb({
 				message: error.message,
 				stack: error.stack,
-			};
-			logger.log('error', error);
-
-			if (connection) {
-				connection.close();
-			}
-
-			cb(error);
+			});
 		}
 	},
 
-	testConnection(connectionInfo, logger, cb){
-		connect(connectionInfo, logger).then((connection) => {
-			connection.close();
-			cb(false);
-		}, error => {
-			cb(true);
+	async testConnection(connectionInfo, logger, cb){
+		const log = loggerHelper.createLogger({
+			title: 'Test connection',
+			hiddenKeys: connectionInfo.hiddenKeys,
+			logger,
 		});
+
+		try {
+			logger.clear();
+			log.info(loggerHelper.getSystemInfo(connectionInfo.appVersion));
+			log.info(connectionInfo);
+	
+			await connectionHelper.connect(connectionInfo);
+			connectionHelper.close();
+
+			log.info('Connected successfully');
+	
+			cb();
+		} catch (error) {
+			log.error(error);
+			
+			return cb({
+				message: error.message,
+				stack: error.stack,
+			});
+		}
 	},
-};
-
-const connect = (connectionInfo, logger) => {
-	logger.clear();
-	logger.log('info', connectionInfo, 'Reverse-Engineering connection settings', connectionInfo.hiddenKeys);
-
-	return connectionHelper.connect(connectionInfo).then((connection) => {
-		logger.log('info', { message: 'successfully connected' });
-
-		return connection;
-	}).catch(error => {
-		logger.log('error', {
-			message: error.message,
-			stack: error.stack,
-			error,
-		});
-
-		return Promise.reject(error);
-	})
 };
 
 const replaceUseCommand = (script) => {
@@ -82,7 +83,7 @@ const replaceUseCommand = (script) => {
 const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection }) => {
 	let currentDb;
 	let commands = [];
-	const logger = createLogger(loggerInstance);
+	const logger = createProgressLog(loggerInstance);
 
 	logger.info('Start applying instance ...');
 
@@ -90,6 +91,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection })
 		ISODate: (d) => new Date(d),
 		ObjectId: bson.ObjectId,
 		Binary: bson.Binary,
+		BinData: (i, data) => bson.Binary(data),
 		MinKey: bson.MinKey,
 		MaxKey: bson.MaxKey,
 		Code: bson.Code,
@@ -99,17 +101,28 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection })
 		},
 
 		db: {
+			createCollection(collectionName) {
+				const command = () => connection.createCollection(currentDb, collectionName).then(() => {
+					logger.info(`Collection ${collectionName} created`);
+				}, (error) => {
+					const errMessage = `Collection ${collectionName} not created`;
+					logger.error(error, errMessage);
+					error.message = errMessage;
+
+					return Promise.reject(error);
+				});
+
+				commands.push(command);
+			},
 			getCollection(collectionName) {
-				const db = connection.db(currentDb);
-				const collection = db.collection(collectionName);
+				const collection = connection.getCollection(currentDb, collectionName);
 
 				return {
 					createIndex(fields, params = {}) {
-						const indexName = params.unique ? 'unique' : (params.name || '');
 						const command = () => collection.createIndex(fields, params).then(() => {
-							logger.info(`index ${indexName} created`);
+							logger.info(`index ${params.name} created`);
 						}, (error) => {
-							const errMessage = `index ${indexName} not created`;
+							const errMessage = `index ${params.name} not created`;
 							logger.error(error, errMessage);
 							error.message = errMessage;
 
@@ -132,26 +145,6 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection })
 						commands.push(command);
 					}
 				};
-			},
-			runCommand(commandData) {
-				const db = connection.db(currentDb);
-
-				const command = () => db.command(commandData).then(() => {
-					logger.info('Create sharding');
-				}).catch(error => {
-					const doesShardingExist = error.codeName === 'NamespaceExists' || error.code === 9;
-					if (doesShardingExist) {
-						logger.warning('shard key is not created:  ' + error.message, error);
-					} else {
-						const errMessage = 'error of creation sharding';
-						logger.error(error, errMessage);
-						error.message = errMessage + ': ' + error.message;
-
-						return Promise.reject(error);
-					}
-				});
-
-				commands.push(command);
 			}
 		}
 	};
@@ -164,33 +157,21 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection })
 	}, Promise.resolve());
 };
 
-const createLogger = logger => ({
+const createProgressLog = logger => ({
 	info(message) {
-		logger.progress({
-			message: `${message}`,
-		});
-		logger.log('info', {
-			message,
-		});
+		logger.progress(`${message}`);
+		logger.info(message);
 	},
 	error(error, message) {
-		logger.progress({
-			message: `[color:red]failed: ${message}`,
-		});
-		logger.log('error', {
-			message: error.message,
-			stack: error.stack,
-		}, message);
+		logger.progress( `[color:red]failed: ${message}`);
+		logger.error(error);
 	},
 	warning(message, error) {
 		logger.progress({
 			message: `[color:orange]warning: ${message}`,
 		});
 		if (error) {
-			logger.log('error', {
-				message: error.message,
-				stack: error.stack,
-			}, message);
+			logger.error(error);
 		}
 	}
 });

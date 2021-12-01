@@ -4,6 +4,7 @@
 	"dtdAbbreviation": "{ts}",
 	"useSample": true,
 	"isNotSelectable": true,
+	"sample": "$__tmstmp_1460127718,1",
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",
