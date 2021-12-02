@@ -1,7 +1,7 @@
 {
 	"extension": "js",
 	"filterName": "MongoDB script",
-	"namePrefix": "CosmosDB Mongo API",
+	"namePrefix": "DocumentDB",
 	"hasUpdateScript": false,
 	"mode": "javascript",
 	"level": {
