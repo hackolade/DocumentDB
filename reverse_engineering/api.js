@@ -50,7 +50,10 @@ module.exports = {
 			const async = app.require('async');
 			const awsSdk = app.require('aws-sdk');
 
-			awsHelper(connectionInfo, awsSdk);
+			awsHelper({
+				...connectionInfo,
+				...parseHost(connectionInfo.host, log)
+			}, awsSdk);
 
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
@@ -460,4 +463,17 @@ const parseMaintenance = (period) => {
 		startMinute: String(getTime(from).getMinutes()).padStart(2, '0'),
 		duration: String((getTime(to) - getTime(from)) / (1000 * 60 * 60)),
 	};
+};
+
+const parseHost = (host, logger) => {
+	try {
+		const [dbClusterIdentifier,,region] = host.split('.');
+	
+		return {
+			dbClusterIdentifier,
+			region,
+		};
+	} catch (e) {
+		logger.error(e);
+	}
 };
