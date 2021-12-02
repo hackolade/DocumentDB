@@ -71,7 +71,7 @@ module.exports = {
 			return callback(null, [useDb, script, samples].join('\n\n'));
 		} catch (e) {
 			const error = { message: e.message, stack: e.stack };
-			logger.log('error', error, 'CosmosDB w\\ Mongo API forward engineering error');
+			logger.log('error', error, 'DocumentDB forward engineering error');
 			callback(error);
 		}
 	},
