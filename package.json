@@ -1,7 +1,7 @@
 {
 	"name": "DocumentDB",
-	"version": "0.1.0",
-	"versionDate": "2021-12-03",
+	"version": "0.1.1",
+	"versionDate": "2022-02-06",
 	"author": "hackolade",
 	"engines": {
 		"hackolade": "5.3.0",

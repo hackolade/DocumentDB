@@ -10,5 +10,6 @@
 	},
 	"excludeDocKind": ["id"],
 	"scenario": "connectToDB",
-	"typeOfSerializer": "bson"
+	"typeOfSerializer": "bson",
+	"helpUrl": "https://hackolade.com/help/ConnecttoaDocumentDBinstance.html"
 }
