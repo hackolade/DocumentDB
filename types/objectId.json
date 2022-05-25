@@ -3,7 +3,7 @@
 	"erdAbbreviation": "<oid>",
 	"dtdAbbreviation": "{_id}",
 	"useSample": true,
-	"sample": "$__oid_507f1f77bcf86cd799439011",
+	"fakerFunction": "`$__oid_${faker.database.mongodbObjectId()}`",
 	"defaultValues": {
 		"primaryKey": true,
 		"relationshipType": "",
