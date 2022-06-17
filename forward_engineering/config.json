@@ -4,6 +4,9 @@
 	"namePrefix": "DocumentDB",
 	"hasUpdateScript": false,
 	"mode": "javascript",
+	"applyToInstanceSettings": {
+		"scenario": "generateBulkSamples"
+	},
 	"level": {
 		"entity": true,
 		"container": true,
@@ -20,6 +23,12 @@
 	}],
 	"splitView": {
 		"byAdditionalOptions": ["INCLUDE_SAMPLES"]
+	},
+	"numberOfDocumentsOptions": {
+		"id": "numberOfDocuments",
+		"value": 1,
+		"minValue": 1,
+		"maxValue": 10000000
 	},
 	"applyScriptToInstance": true,
 	"refresh": true
