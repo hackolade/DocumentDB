@@ -186,7 +186,7 @@ const generateScriptForInsertingDataInBulk = async (script, entitiesData, logger
             numberOfSamples += documents.length;
 
 			return resultScript + documents
-				.map(document => `db.getCollection("${collectionName}").insertOne(${document});`)
+				.map(document => `db.getCollection("${collectionName}").insert(${document});`)
 				.join('\n\n');
         } catch (error) {
             logger.error(error, 'Error during publishing fake data in bulk');
