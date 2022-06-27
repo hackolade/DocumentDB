@@ -172,7 +172,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 };
 
 const generateScriptForInsertingDataInBulk = async (script, entitiesData, logger) => {
-	let numberOfSamples = Object.keys(entitiesData).length;
+    let numberOfSamples = Object.keys(entitiesData).length;
     const scriptWithSamples = await Object.values(entitiesData).reduce(async (resultScript, entityData) => {
 		resultScript = await resultScript;
 
