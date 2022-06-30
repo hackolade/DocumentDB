@@ -5,7 +5,7 @@
 	"hasUpdateScript": false,
 	"mode": "javascript",
 	"applyToInstanceSettings": {
-		"scenario": "generateBulkSamples"
+		"generateSamplesInBulk": true
 	},
 	"level": {
 		"entity": true,
