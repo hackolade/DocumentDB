@@ -46,6 +46,11 @@
 		"schema": {
 			"mode": "double"
 		},
+		"mode": "decimal"
+	}, {
+		"schema": {
+			"mode": "double"
+		},
 		"mode": "floating"
 	}]
 }
