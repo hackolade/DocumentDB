@@ -37,5 +37,15 @@
 			"mode": "double"
 		},
 		"capacity": 8
+	}, {
+		"schema": {
+			"mode": "int64"
+		},
+		"mode": "long"
+	}, {
+		"schema": {
+			"mode": "double"
+		},
+		"mode": "floating"
 	}]
 }
