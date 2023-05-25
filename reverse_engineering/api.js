@@ -201,11 +201,10 @@ module.exports = {
 					const packageData = {
 						dbName,
 						collectionName,
-						documents: documents.map(serialize),
-						relationshipDocuments: filterPotentialForeignKeys(documents).map(serialize),
+						documents: documents,
+						relationshipDocuments: filterPotentialForeignKeys(documents),
 						primaryKey: '_id',
-						typeOfSerializer: 'bson',
-						standardDoc: serialize(standardDoc),
+						standardDoc,
 						validation: {
 							jsonSchema: getJsonSchema(documents[0]),
 						},
@@ -227,16 +226,6 @@ module.exports = {
 			cb({ message: error.message, stack: error.stack });
 		}
 	}
-};
-
-const serialize = (data) => {
-	const b = new bson();
-	
-	if (!data) {
-		data = {};
-	}
-
-	return b.serialize(data)
 };
 
 const safeParse = (data) => {
