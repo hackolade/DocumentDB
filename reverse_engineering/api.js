@@ -6,12 +6,12 @@ const bson = require('bson');
 const awsHelper = require('./helpers/awsHelper');
 
 module.exports = {
-	disconnect: function(connectionInfo, logger, cb) {
+	disconnect: function (connectionInfo, logger, cb) {
 		connectionHelper.close();
-		cb()
+		cb();
 	},
 
-	async testConnection(connectionInfo, logger, cb){
+	async testConnection(connectionInfo, logger, cb) {
 		const log = createLogger({
 			title: 'Test connection',
 			hiddenKeys: connectionInfo.hiddenKeys,
@@ -30,7 +30,7 @@ module.exports = {
 			cb();
 		} catch (error) {
 			log.error(error);
-			
+
 			return cb({
 				message: error.message,
 				stack: error.stack,
@@ -50,21 +50,24 @@ module.exports = {
 			const async = app.require('async');
 			const awsSdk = app.require('aws-sdk');
 
-			awsHelper({
-				...connectionInfo,
-				...parseHost(connectionInfo.host, log)
-			}, awsSdk);
+			awsHelper(
+				{
+					...connectionInfo,
+					...parseHost(connectionInfo.host, log),
+				},
+				awsSdk,
+			);
 
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo);
-			
+
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
 			const connection = await connectionHelper.connect(connectionInfo);
 
 			const databases = await connection.getDatabases();
 
-			const result = await async.mapSeries(databases, async (database) => {
+			const result = await async.mapSeries(databases, async database => {
 				const collections = await connection.getCollections(database.name);
 				let dbCollections = collections.map(collection => collection.name);
 
@@ -72,8 +75,8 @@ module.exports = {
 					message: 'Found collections',
 					collections: dbCollections,
 				});
-				
-				dbCollections = await async.filter(dbCollections, async (collectionName) => {
+
+				dbCollections = await async.filter(dbCollections, async collectionName => {
 					return connection.hasPermission(database.name, collectionName);
 				});
 
@@ -107,7 +110,7 @@ module.exports = {
 		}
 	},
 
-	async getDbCollectionsData(data, logger, cb, app){
+	async getDbCollectionsData(data, logger, cb, app) {
 		const log = createLogger({
 			title: 'Retrieving data for inferring schema',
 			hiddenKeys: data.hiddenKeys,
@@ -115,7 +118,7 @@ module.exports = {
 		});
 
 		try {
-			const async = app.require('async');	
+			const async = app.require('async');
 			const _ = app.require('lodash');
 			const { recordSamplingSettings, fieldInference, includeEmptyCollection, collectionData } = data;
 			const query = safeParse(data.queryCriteria);
@@ -142,7 +145,7 @@ module.exports = {
 
 				const cluster = await awsConnection.getCluster();
 				if (!cluster) {
-					throw new Error('Cluster doesn\'t exist in the chosen region.');
+					throw new Error("Cluster doesn't exist in the chosen region.");
 				}
 				const tags = await awsConnection.tags(cluster['DBClusterArn']);
 				const clusterData = getClusterData(cluster);
@@ -157,10 +160,11 @@ module.exports = {
 				};
 			} catch (e) {
 				log.progress('[color:red]Error of getting cluster information');
-				log.info('Cannot get information about the cluster from AWS. Please, check AWS credentials in the connection settings.');
+				log.info(
+					'Cannot get information about the cluster from AWS. Please, check AWS credentials in the connection settings.',
+				);
 				log.error(e);
 			}
-			
 
 			const result = await async.reduce(collectionData.dataBaseNames, [], async (result, dbName) => {
 				return await async.reduce(collectionData.collections[dbName], result, async (result, collectionName) => {
@@ -175,7 +179,13 @@ module.exports = {
 
 					const limit = getSampleDocSize(count, recordSamplingSettings);
 
-					log.info({ message: 'Getting documents for sampling', dbName, collectionName, countOfDocuments: count, documentsToSample: limit });
+					log.info({
+						message: 'Getting documents for sampling',
+						dbName,
+						collectionName,
+						countOfDocuments: count,
+						documentsToSample: limit,
+					});
 					log.progress('Getting documents for sampling', dbName, collectionName);
 
 					const documents = await connection.getRandomDocuments(dbName, collectionName, {
@@ -185,7 +195,7 @@ module.exports = {
 						sort,
 					});
 					let standardDoc = {};
-					
+
 					if (fieldInference.active === 'field') {
 						log.info({ message: 'Getting a document for inferring', dbName, collectionName });
 						log.progress('Getting a document for inferring', dbName, collectionName);
@@ -210,7 +220,7 @@ module.exports = {
 						},
 						entityLevel: {
 							Indxs: getIndexes(indexes),
-						}
+						},
 					};
 
 					log.info({ message: 'Collection processed', dbName, collectionName });
@@ -225,10 +235,10 @@ module.exports = {
 			log.error(error);
 			cb({ message: error.message, stack: error.stack });
 		}
-	}
+	},
 };
 
-const safeParse = (data) => {
+const safeParse = data => {
 	try {
 		return JSON.parse(data);
 	} catch (e) {
@@ -236,9 +246,9 @@ const safeParse = (data) => {
 	}
 };
 
-const filterPotentialForeignKeys = (documents) => {
-	const isObject = (item) => item && typeof item === 'object';
-	const isEmpty = (item) => {
+const filterPotentialForeignKeys = documents => {
+	const isObject = item => item && typeof item === 'object';
+	const isEmpty = item => {
 		if (!item) {
 			return true;
 		}
@@ -274,32 +284,33 @@ const filterPotentialForeignKeys = (documents) => {
 		}, {});
 	};
 
-	return documents.map(document => iterateProps(document)).filter((item) => !isEmpty(item));
+	return documents.map(document => iterateProps(document)).filter(item => !isEmpty(item));
 };
 
-function getSamplingInfo(recordSamplingSettings, fieldInference){
+function getSamplingInfo(recordSamplingSettings, fieldInference) {
 	let samplingInfo = {};
 	let value = recordSamplingSettings[recordSamplingSettings.active].value;
-	let unit = (recordSamplingSettings.active === 'relative') ? '%' : ' records max';
-	samplingInfo.recordSampling = `${recordSamplingSettings.active} ${value}${unit}`
-	samplingInfo.fieldInference = (fieldInference.active === 'field') ? 'keep field order' : 'alphabetical order';
+	let unit = recordSamplingSettings.active === 'relative' ? '%' : ' records max';
+	samplingInfo.recordSampling = `${recordSamplingSettings.active} ${value}${unit}`;
+	samplingInfo.fieldInference = fieldInference.active === 'field' ? 'keep field order' : 'alphabetical order';
 	return samplingInfo;
 }
 
 function filterSystemCollections(collections) {
-	return collections.filter((collectionName) => {
+	return collections.filter(collectionName => {
 		return collectionName?.length < 8 || collectionName?.substring(0, 7) !== 'system.';
 	});
 }
 
-function getSampleDocSize(count, recordSamplingSettings) {
-	let per = recordSamplingSettings.relative.value;
-	const limit = (recordSamplingSettings.active === 'absolute')
-		? Math.min(count, recordSamplingSettings.absolute.value)
-		: Math.ceil( count / 100 * per);
+const getSampleDocSize = (count, recordSamplingSettings) => {
+	if (recordSamplingSettings.active === 'absolute') {
+		return Number(recordSamplingSettings.absolute.value);
+	}
 
-	return Math.min(recordSamplingSettings.maxValue || 10000, limit);
-}
+	const limit = Math.ceil((count * recordSamplingSettings.relative.value) / 100);
+
+	return Math.min(limit, recordSamplingSettings.maxValue);
+};
 
 function getJsonSchema(doc) {
 	if (doc instanceof bson.ObjectID || doc instanceof bson.DBRef) {
@@ -314,22 +325,22 @@ function getJsonSchema(doc) {
 	} else if (doc instanceof bson.Long) {
 		return {
 			type: 'numeric',
-			mode: 'int64'
+			mode: 'int64',
 		};
-	} else if (typeof doc === "number" && (doc % 1) !== 0) {
+	} else if (typeof doc === 'number' && doc % 1 !== 0) {
 		return {
 			type: 'numeric',
-			mode: 'double'
+			mode: 'double',
 		};
-	} else if (typeof doc === "number" && Math.abs(doc) < 2**32) {
+	} else if (typeof doc === 'number' && Math.abs(doc) < 2 ** 32) {
 		return {
 			type: 'numeric',
-			mode: 'int32'
+			mode: 'int32',
 		};
 	} else if (doc && typeof doc === 'object') {
 		const properties = Object.keys(doc).reduce((schema, key) => {
 			const data = getJsonSchema(doc[key]);
-	
+
 			if (!data) {
 				return schema;
 			}
@@ -351,24 +362,26 @@ function getJsonSchema(doc) {
 }
 
 function getIndexes(indexes) {
-	return indexes.filter(ind => {
-		return ind.name !== '_id_';
-	}).map(ind => ({
-		name: ind.name,
-		key: Object.keys(ind.key).map((key) => {
-			return {
-				name: key,
-				type: getIndexType(ind.key[key]),
-			};
-		}),
-		sparse: ind.sparse,
-		unique: ind.unique,
-		expireAfterSeconds: ind.expireAfterSeconds,
-		"2dsphere": ind['2dsphereIndexVersion'] ? getGeoIndexVersion(ind['2dsphereIndexVersion']) : {}
-	}));
+	return indexes
+		.filter(ind => {
+			return ind.name !== '_id_';
+		})
+		.map(ind => ({
+			name: ind.name,
+			key: Object.keys(ind.key).map(key => {
+				return {
+					name: key,
+					type: getIndexType(ind.key[key]),
+				};
+			}),
+			sparse: ind.sparse,
+			unique: ind.unique,
+			expireAfterSeconds: ind.expireAfterSeconds,
+			'2dsphere': ind['2dsphereIndexVersion'] ? getGeoIndexVersion(ind['2dsphereIndexVersion']) : {},
+		}));
 }
 
-const getIndexType = (indexType) => {
+const getIndexType = indexType => {
 	switch (indexType) {
 		case 1:
 			return 'ascending';
@@ -381,7 +394,7 @@ const getIndexType = (indexType) => {
 	return 'ascending';
 };
 
-const getGeoIndexVersion = (version) => {
+const getGeoIndexVersion = version => {
 	let indexVersion = 'default';
 
 	if (version === 1) {
@@ -391,13 +404,13 @@ const getGeoIndexVersion = (version) => {
 	if (version === 2) {
 		indexVersion = 'Version 2';
 	}
-	
+
 	return {
 		'2dsphereIndexVersion': indexVersion,
 	};
 };
 
-const getClusterData = (cluster) => {
+const getClusterData = cluster => {
 	return {
 		dbInstances: cluster['DBClusterMembers']?.map(instance => ({
 			dbInstanceIdentifier: instance['DBInstanceIdentifier'],
@@ -419,21 +432,23 @@ const getClusterData = (cluster) => {
 	};
 };
 
-const parseMaintenance = (period) => {
-	const getDay = (d) => {
+const parseMaintenance = period => {
+	const getDay = d => {
 		const day = d.slice(0, 3);
 
-		return ({
-			sun: 'Sunday',
-			mon: 'Monday',
-			tue: 'Tuesday',
-			wed: 'Wednesday',
-			thu: 'Thursday',
-			fri: 'Friday',
-			sat: 'Saturday',
-		})[day] || 'Sunday';
+		return (
+			{
+				sun: 'Sunday',
+				mon: 'Monday',
+				tue: 'Tuesday',
+				wed: 'Wednesday',
+				thu: 'Thursday',
+				fri: 'Friday',
+				sat: 'Saturday',
+			}[day] || 'Sunday'
+		);
 	};
-	const getTime = (d) => {
+	const getTime = d => {
 		const time = d.slice(4);
 		const [hours, minutes] = time.split(':');
 		const date = new Date(0);
@@ -445,7 +460,7 @@ const parseMaintenance = (period) => {
 	};
 
 	const [from, to] = period.split('-');
-	
+
 	return {
 		startDay: getDay(from),
 		startHour: String(getTime(from).getHours()).padStart(2, '0'),
@@ -456,8 +471,8 @@ const parseMaintenance = (period) => {
 
 const parseHost = (host, logger) => {
 	try {
-		const [dbClusterIdentifier,,region] = host.split('.');
-	
+		const [dbClusterIdentifier, , region] = host.split('.');
+
 		return {
 			dbClusterIdentifier,
 			region,
