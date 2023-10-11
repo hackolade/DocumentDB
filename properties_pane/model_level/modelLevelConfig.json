@@ -123,9 +123,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "dbVendor",
 				"propertyTooltip": "db vendor",
 				"propertyType": "select",
-				"options": [
-					"DocumentDB"
-				],
+				"options": ["DocumentDB"],
 				"disabledOption": true
 			},
 			{
@@ -133,10 +131,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "dbVersion",
 				"propertyTooltip": "Database version",
 				"propertyType": "select",
-				"options": [
-					"3.6.0",
-					"4.0.0"
-				]
+				"options": ["3.6.0", "4.0.0"]
 			},
 			{
 				"propertyName": "Region",
@@ -144,22 +139,22 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
 				"options": [
-					{"name": "US East (N. Virginia)", "value": "us-east-1"},
-					{"name": "US East (Ohio)", "value": "us-east-2"},
-					{"name": "AWS GovCloud (US)", "value": "us-gov-west-1"},
-					{"name": "US West (Oregon)", "value": "us-west-2"},
-					{"name": "Canada (Central)", "value": "ca-central-1"},
-					{"name": "South America (São Paulo)", "value": "sa-east-1"},
-					{"name": "Europe (Frankfurt)", "value": "eu-central-1"},
-					{"name": "Europe (Ireland)", "value": "eu-west-1"},
-					{"name": "Europe (London)", "value": "eu-west-2"},
-					{"name": "Europe (Paris)", "value": "eu-west-3"},
-					{"name": "China (Ningxia)", "value": "cn-northwest-1"},
-					{"name": "Asia Pacific (Singapore)", "value": "ap-southeast-1"},
-					{"name": "Asia Pacific (Sydney)", "value": "ap-southeast-2"},
-					{"name": "Asia Pacific (Tokyo)", "value": "ap-northeast-1"},
-					{"name": "Asia Pacific (Seoul)", "value": "ap-northeast-2"},
-					{"name": "Asia Pacific (Mumbai)", "value": "ap-south-1"}
+					{ "name": "US East (N. Virginia)", "value": "us-east-1" },
+					{ "name": "US East (Ohio)", "value": "us-east-2" },
+					{ "name": "AWS GovCloud (US)", "value": "us-gov-west-1" },
+					{ "name": "US West (Oregon)", "value": "us-west-2" },
+					{ "name": "Canada (Central)", "value": "ca-central-1" },
+					{ "name": "South America (São Paulo)", "value": "sa-east-1" },
+					{ "name": "Europe (Frankfurt)", "value": "eu-central-1" },
+					{ "name": "Europe (Ireland)", "value": "eu-west-1" },
+					{ "name": "Europe (London)", "value": "eu-west-2" },
+					{ "name": "Europe (Paris)", "value": "eu-west-3" },
+					{ "name": "China (Ningxia)", "value": "cn-northwest-1" },
+					{ "name": "Asia Pacific (Singapore)", "value": "ap-southeast-1" },
+					{ "name": "Asia Pacific (Sydney)", "value": "ap-southeast-2" },
+					{ "name": "Asia Pacific (Tokyo)", "value": "ap-northeast-1" },
+					{ "name": "Asia Pacific (Seoul)", "value": "ap-northeast-2" },
+					{ "name": "Asia Pacific (Mumbai)", "value": "ap-south-1" }
 				]
 			},
 			{
@@ -180,10 +175,7 @@ making sure that you maintain a proper JSON format.
 						"propertyKeyword": "dbInstanceRole",
 						"propertyType": "select",
 						"defaultValue": "Reader",
-						"options": [
-							"Primary",
-							"Replica"
-						]
+						"options": ["Primary", "Replica"]
 					}
 				]
 			},
@@ -296,15 +288,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "startDay",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"Monday",
-					"Tuesday",
-					"Wednesday",
-					"Thursday",
-					"Friday",
-					"Saturday",
-					"Sunday"
-				],
+				"options": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
 				"dependency": {
 					"key": "maintenance",
 					"value": true

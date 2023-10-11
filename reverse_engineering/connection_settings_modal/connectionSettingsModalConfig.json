@@ -7,7 +7,6 @@
 				"inputKeyword": "name",
 				"inputType": "text",
 				"inputPlaceholder": "Name"
-				
 			},
 			{
 				"inputLabel": "Host",
@@ -33,7 +32,6 @@
 				"inputKeyword": "username",
 				"inputType": "text",
 				"inputPlaceholder": "User Name"
-				
 			},
 			{
 				"inputLabel": "Password",
@@ -52,18 +50,20 @@
 				"inputLabel": "SSL",
 				"inputKeyword": "sslType",
 				"inputType": "select",
-				"options": [{
-					"value": "Off", 
-					"label": "Off"
-				},{
-					"value": "UNVALIDATED_SSL",
-					"label": "Unvalidated"
-
-				},{
-					"value": "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
-					"label": "Server validation"
-
-				}]
+				"options": [
+					{
+						"value": "Off",
+						"label": "Off"
+					},
+					{
+						"value": "UNVALIDATED_SSL",
+						"label": "Unvalidated"
+					},
+					{
+						"value": "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
+						"label": "Server validation"
+					}
+				]
 			},
 			{
 				"inputLabel": "Certificate Authority",
@@ -124,10 +124,12 @@
 				"inputKeyword": "ssh_method",
 				"inputType": "select",
 				"defaultValue": "privateKey",
-				"options": [{
-					"value": "privateKey", 
-					"label": "Private Key"
-				}],
+				"options": [
+					{
+						"value": "privateKey",
+						"label": "Private Key"
+					}
+				],
 				"disable": {
 					"key": "ssh",
 					"value": false

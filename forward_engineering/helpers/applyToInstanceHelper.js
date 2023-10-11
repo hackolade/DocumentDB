@@ -1,5 +1,5 @@
 const vm = require('vm');
-const bson = require('../../reverse_engineering/node_modules/bson');
+const bson = require('bson');
 const connectionHelper = require('../../reverse_engineering/helpers/connectionHelper');
 const loggerHelper = require('../../reverse_engineering/helpers/logHelper');
 const readNdJsonByLine = require('./ndJsonHelper');
@@ -19,7 +19,11 @@ const applyToInstanceHelper = {
 
 			const connection = await connectionHelper.connect(data);
 
-			const {scriptWithSamples, numberOfSamples} = await generateScriptForInsertingDataInBulk(data.script, data.entitiesData, log);
+			const { scriptWithSamples, numberOfSamples } = await generateScriptForInsertingDataInBulk(
+				data.script,
+				data.entitiesData,
+				log,
+			);
 			const mongodbScript = replaceUseCommand(convertBson(scriptWithSamples));
 			await runMongoDbScript({
 				mongodbScript,
@@ -41,7 +45,7 @@ const applyToInstanceHelper = {
 		}
 	},
 
-	async testConnection(connectionInfo, logger, cb){
+	async testConnection(connectionInfo, logger, cb) {
 		const log = loggerHelper.createLogger({
 			title: 'Test connection',
 			hiddenKeys: connectionInfo.hiddenKeys,
@@ -52,16 +56,16 @@ const applyToInstanceHelper = {
 			logger.clear();
 			log.info(loggerHelper.getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo);
-	
+
 			await connectionHelper.connect(connectionInfo);
 			connectionHelper.close();
 
 			log.info('Connected successfully');
-	
+
 			cb();
 		} catch (error) {
 			log.error(error);
-			
+
 			return cb({
 				message: error.message,
 				stack: error.stack,
@@ -70,17 +74,21 @@ const applyToInstanceHelper = {
 	},
 };
 
-const replaceUseCommand = (script) => {
-	return script.split('\n').filter(Boolean).map(line => {
-		const useStatement = /^use\ ([\s\S]+);$/i;
-		const result = line.match(useStatement);
+const replaceUseCommand = script => {
+	return script
+		.split('\n')
+		.filter(Boolean)
+		.map(line => {
+			const useStatement = /^use\ ([\s\S]+);$/i;
+			const result = line.match(useStatement);
 
-		if (!result) {
-			return line;
-		}
+			if (!result) {
+				return line;
+			}
 
-		return `useDb("${result[1]}");`;
-	}).join('\n');
+			return `useDb("${result[1]}");`;
+		})
+		.join('\n');
 };
 
 const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, numberOfSamples }) => {
@@ -93,7 +101,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 	logger.info('Start applying instance ...');
 
 	const context = {
-		ISODate: (d) => new Date(d),
+		ISODate: d => new Date(d),
 		ObjectId: bson.ObjectId,
 		Binary: bson.Binary,
 		BinData: (i, data) => bson.Binary(data),
@@ -108,15 +116,19 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 
 		db: {
 			createCollection(collectionName) {
-				const command = () => connection.createCollection(currentDb, collectionName).then(() => {
-					logger.info(`Collection ${collectionName} created`);
-				}, (error) => {
-					const errMessage = `Collection ${collectionName} not created`;
-					logger.error(error, errMessage);
-					error.message = errMessage;
+				const command = () =>
+					connection.createCollection(currentDb, collectionName).then(
+						() => {
+							logger.info(`Collection ${collectionName} created`);
+						},
+						error => {
+							const errMessage = `Collection ${collectionName} not created`;
+							logger.error(error, errMessage);
+							error.message = errMessage;
 
-					return Promise.reject(error);
-				});
+							return Promise.reject(error);
+						},
+					);
 
 				commands.push(command);
 			},
@@ -125,42 +137,50 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 
 				return {
 					createIndex(fields, params = {}) {
-						const command = () => collection.createIndex(fields, params).then(() => {
-							logger.info(`index ${params.name} created`);
-						}, (error) => {
-							const errMessage = `index ${params.name} not created`;
-							logger.error(error, errMessage);
-							error.message = errMessage;
+						const command = () =>
+							collection.createIndex(fields, params).then(
+								() => {
+									logger.info(`index ${params.name} created`);
+								},
+								error => {
+									const errMessage = `index ${params.name} not created`;
+									logger.error(error, errMessage);
+									error.message = errMessage;
 
-							return Promise.reject(error);
-						});
+									return Promise.reject(error);
+								},
+							);
 
 						commands.push(command);
 					},
 					insert(data) {
-						const command = () => collection.insertOne(data).then(() => {
-							insertedSamples++;
-							const insertingProgress = Math.round((insertedSamples / numberOfSamples) * 100);
-							if (insertingProgress - prevInsertingProgress < 5) {
-								return;
-							}
-							prevInsertingProgress = insertingProgress;
+						const command = () =>
+							collection
+								.insertOne(data)
+								.then(() => {
+									insertedSamples++;
+									const insertingProgress = Math.round((insertedSamples / numberOfSamples) * 100);
+									if (insertingProgress - prevInsertingProgress < 5) {
+										return;
+									}
+									prevInsertingProgress = insertingProgress;
 
-							logger.info(`Inserting Samples: ${insertingProgress}%`);
-						}).catch(error => {
-							insertedSamples++;
-							const errMessage = `sample is not inserted ${insertedSamples} / ${numberOfSamples} Reason: ${error.message}`;
-							logger.error(error, errMessage);
-							error.message = errMessage;
+									logger.info(`Inserting Samples: ${insertingProgress}%`);
+								})
+								.catch(error => {
+									insertedSamples++;
+									const errMessage = `sample is not inserted ${insertedSamples} / ${numberOfSamples} Reason: ${error.message}`;
+									logger.error(error, errMessage);
+									error.message = errMessage;
 
-							return Promise.reject(error);
-						});
+									return Promise.reject(error);
+								});
 
 						commands.push(command);
-					}
+					},
 				};
-			}
-		}
+			},
+		},
 	};
 
 	vm.createContext(context);
@@ -172,26 +192,30 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 };
 
 const generateScriptForInsertingDataInBulk = async (script, entitiesData, logger) => {
-    let numberOfSamples = Object.keys(entitiesData).length;
-    const scriptWithSamples = await Object.values(entitiesData).reduce(async (resultScript, entityData) => {
-		resultScript = await resultScript;
+	let numberOfSamples = Object.keys(entitiesData).length;
+	const scriptWithSamples = await Object.values(entitiesData).reduce(
+		async (resultScript, entityData) => {
+			resultScript = await resultScript;
 
-        if (!entityData.filePath) {
-            return Promise.resolve(resultScript);
-        }
+			if (!entityData.filePath) {
+				return Promise.resolve(resultScript);
+			}
 
-        try {
-            const collectionName = entityData.code || entityData.name;
-            const documents = await readNdJsonByLine(entityData.filePath, logger);
-            numberOfSamples += documents.length;
+			try {
+				const collectionName = entityData.code || entityData.name;
+				const documents = await readNdJsonByLine(entityData.filePath, logger);
+				numberOfSamples += documents.length;
 
-			return resultScript + documents
-				.map(document => `db.getCollection("${collectionName}").insert(${document});`)
-				.join('\n\n');
-        } catch (error) {
-            logger.error(error, 'Error during publishing fake data in bulk');
-        }
-    }, Promise.resolve(script + '\n\n'));
+				return (
+					resultScript +
+					documents.map(document => `db.getCollection("${collectionName}").insert(${document});`).join('\n\n')
+				);
+			} catch (error) {
+				logger.error(error, 'Error during publishing fake data in bulk');
+			}
+		},
+		Promise.resolve(script + '\n\n'),
+	);
 
 	return { scriptWithSamples, numberOfSamples };
 };
@@ -202,7 +226,7 @@ const createProgressLog = logger => ({
 		logger.info(message);
 	},
 	error(error, message) {
-		logger.progress( `[color:red]failed: ${message}`);
+		logger.progress(`[color:red]failed: ${message}`);
 		logger.error(error);
 	},
 	warning(message, error) {
@@ -212,11 +236,12 @@ const createProgressLog = logger => ({
 		if (error) {
 			logger.error(error);
 		}
-	}
+	},
 });
 
 function convertBson(sample) {
-	return sample.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/gi, 'MinKey($1)')
+	return sample
+		.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/gi, 'MinKey($1)')
 		.replace(/\{\s*\"\$maxKey\": (\d*)\s*\}/gi, 'MaxKey($1)');
 }
 

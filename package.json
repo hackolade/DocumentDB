@@ -52,5 +52,34 @@
 			"enableREQueryAndSortCriteria": true
 		}
 	},
-	"description": "Hackolade plugin for Amazon DocumentDB"
+	"description": "Hackolade plugin for Amazon DocumentDB",
+	"scripts": {
+		"lint": "eslint . --max-warnings=0",
+		"package": "node esbuild.package.js"
+	},
+	"dependencies": {
+		"async": "^3.2.4",
+		"bson": "^1.1.6",
+		"lodash": "^4.17.21",
+		"mongodb": "^3.7.3",
+		"mongodb-collection-sample": "^4.5.1"
+	},
+	"devDependencies": {
+		"@hackolade/hck-esbuild-plugins-pack": "^0.0.1",
+		"esbuild": "^0.19.4",
+		"esbuild-plugin-clean": "^1.0.1",
+		"eslint": "^8.51.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-prettier": "^5.0.0",
+		"lint-staged": "^14.0.1",
+		"prettier": "^3.0.3",
+		"simple-git-hooks": "^2.9.0"
+	},
+	"lint-staged": {
+		"*.{js,json}": "prettier --write"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "npx lint-staged",
+		"pre-push": "npx eslint ."
+	}
 }

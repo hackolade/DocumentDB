@@ -150,83 +150,77 @@ making sure that you maintain a proper JSON format.
 	},
 	{
 		"lowerTab": "Indexes",
-		"structure": [{
-			"propertyName": "Index",
-			"propertyType": "group",
-			"propertyKeyword": "Indxs",
-			"propertyTooltip": "Click + to add an index",
-			"erdIndexAbbr": "I",
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "name",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Activated",
-					"propertyKeyword": "isActivated",
-					"propertyTooltip": "Deactivated item will be not included in forward-engineering script",
-					"propertyType": "checkbox",
-					"defaultValue": true
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "key",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending",
-						"2DSphere"
-					]
-				},
-				{
-					"propertyName": "Unique",
-					"propertyKeyword": "unique",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Sparse",
-					"propertyKeyword": "sparse",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Background indexing",
-					"propertyKeyword": "background",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Expire after (seconds)",
-					"propertyKeyword": "expireAfterSeconds",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false
-				},
-				{
-					"propertyName": "2D Sphere",
-					"propertyKeyword": "2dsphere",
-					"propertyType": "block",
-					"propertyTooltip": "",
-					"dependency": {
-						"key": "key.*.type",
-						"value": "2DSphere"
+		"structure": [
+			{
+				"propertyName": "Index",
+				"propertyType": "group",
+				"propertyKeyword": "Indxs",
+				"propertyTooltip": "Click + to add an index",
+				"erdIndexAbbr": "I",
+				"structure": [
+					{
+						"propertyName": "Name",
+						"propertyKeyword": "name",
+						"propertyTooltip": "",
+						"propertyType": "text"
 					},
-					"structure": [
-						{
-							"propertyName": "Index version",
-							"propertyKeyword": "2dsphereIndexVersion",
-							"propertyTooltip": "Select from list of options",
-							"propertyType": "select",
-							"options": [
-								"default",
-								"Version 2",
-								"Version 1"
-							]
-						}
-					]
-				}
-			]
-		}]
+					{
+						"propertyName": "Activated",
+						"propertyKeyword": "isActivated",
+						"propertyTooltip": "Deactivated item will be not included in forward-engineering script",
+						"propertyType": "checkbox",
+						"defaultValue": true
+					},
+					{
+						"propertyName": "Keys",
+						"propertyKeyword": "key",
+						"propertyType": "fieldList",
+						"template": "orderedList",
+						"attributeList": ["ascending", "descending", "2DSphere"]
+					},
+					{
+						"propertyName": "Unique",
+						"propertyKeyword": "unique",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Sparse",
+						"propertyKeyword": "sparse",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Background indexing",
+						"propertyKeyword": "background",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Expire after (seconds)",
+						"propertyKeyword": "expireAfterSeconds",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"allowNegative": false
+					},
+					{
+						"propertyName": "2D Sphere",
+						"propertyKeyword": "2dsphere",
+						"propertyType": "block",
+						"propertyTooltip": "",
+						"dependency": {
+							"key": "key.*.type",
+							"value": "2DSphere"
+						},
+						"structure": [
+							{
+								"propertyName": "Index version",
+								"propertyKeyword": "2dsphereIndexVersion",
+								"propertyTooltip": "Select from list of options",
+								"propertyType": "select",
+								"options": ["default", "Version 2", "Version 1"]
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 ]

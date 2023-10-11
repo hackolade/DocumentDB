@@ -1,17 +1,20 @@
 'use strict';
 
+const async = require('async');
 const connectionHelper = require('./helpers/connectionHelper');
 const { createLogger, getSystemInfo } = require('./helpers/logHelper');
 const bson = require('bson');
 const awsHelper = require('./helpers/awsHelper');
 
 module.exports = {
-	disconnect: function (connectionInfo, logger, cb) {
-		connectionHelper.close();
+	disconnect: async function (connectionInfo, logger, cb, app) {
+		const sshService = app.require('@hackolade/ssh-service');
+		await connectionHelper.close(sshService);
 		cb();
 	},
 
-	async testConnection(connectionInfo, logger, cb) {
+	async testConnection(connectionInfo, logger, cb, app) {
+		const sshService = app.require('@hackolade/ssh-service');
 		const log = createLogger({
 			title: 'Test connection',
 			hiddenKeys: connectionInfo.hiddenKeys,
@@ -23,7 +26,7 @@ module.exports = {
 			log.info(getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo);
 
-			await connectionHelper.connect(connectionInfo);
+			await connectionHelper.connect(connectionInfo, sshService);
 
 			log.info('Connected successfully');
 
@@ -39,6 +42,9 @@ module.exports = {
 	},
 
 	async getDbCollectionsNames(connectionInfo, logger, cb, app) {
+		const sshService = app.require('@hackolade/ssh-service');
+		const awsSdk = app.require('aws-sdk');
+
 		const log = createLogger({
 			title: 'Retrieving databases and collections information',
 			hiddenKeys: connectionInfo.hiddenKeys,
@@ -46,10 +52,6 @@ module.exports = {
 		});
 
 		try {
-			const _ = app.require('lodash');
-			const async = app.require('async');
-			const awsSdk = app.require('aws-sdk');
-
 			awsHelper(
 				{
 					...connectionInfo,
@@ -63,7 +65,7 @@ module.exports = {
 			log.info(connectionInfo);
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
-			const connection = await connectionHelper.connect(connectionInfo);
+			const connection = await connectionHelper.connect(connectionInfo, sshService);
 
 			const databases = await connection.getDatabases();
 
@@ -118,8 +120,6 @@ module.exports = {
 		});
 
 		try {
-			const async = app.require('async');
-			const _ = app.require('lodash');
 			const { recordSamplingSettings, fieldInference, includeEmptyCollection, collectionData } = data;
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
@@ -167,67 +167,71 @@ module.exports = {
 			}
 
 			const result = await async.reduce(collectionData.dataBaseNames, [], async (result, dbName) => {
-				return await async.reduce(collectionData.collections[dbName], result, async (result, collectionName) => {
-					log.info({ message: 'Calculate count of documents', dbName, collectionName });
-					log.progress('Calculate count of documents', dbName, collectionName);
+				return await async.reduce(
+					collectionData.collections[dbName],
+					result,
+					async (result, collectionName) => {
+						log.info({ message: 'Calculate count of documents', dbName, collectionName });
+						log.progress('Calculate count of documents', dbName, collectionName);
 
-					const count = await connection.getCount(dbName, collectionName);
+						const count = await connection.getCount(dbName, collectionName);
 
-					if (!includeEmptyCollection && count === 0) {
-						return result;
-					}
+						if (!includeEmptyCollection && count === 0) {
+							return result;
+						}
 
-					const limit = getSampleDocSize(count, recordSamplingSettings);
+						const limit = getSampleDocSize(count, recordSamplingSettings);
 
-					log.info({
-						message: 'Getting documents for sampling',
-						dbName,
-						collectionName,
-						countOfDocuments: count,
-						documentsToSample: limit,
-					});
-					log.progress('Getting documents for sampling', dbName, collectionName);
+						log.info({
+							message: 'Getting documents for sampling',
+							dbName,
+							collectionName,
+							countOfDocuments: count,
+							documentsToSample: limit,
+						});
+						log.progress('Getting documents for sampling', dbName, collectionName);
 
-					const documents = await connection.getRandomDocuments(dbName, collectionName, {
-						maxTimeMS,
-						limit,
-						query,
-						sort,
-					});
-					let standardDoc = {};
+						const documents = await connection.getRandomDocuments(dbName, collectionName, {
+							maxTimeMS,
+							limit,
+							query,
+							sort,
+						});
+						let standardDoc = {};
 
-					if (fieldInference.active === 'field') {
-						log.info({ message: 'Getting a document for inferring', dbName, collectionName });
-						log.progress('Getting a document for inferring', dbName, collectionName);
+						if (fieldInference.active === 'field') {
+							log.info({ message: 'Getting a document for inferring', dbName, collectionName });
+							log.progress('Getting a document for inferring', dbName, collectionName);
 
-						standardDoc = await connection.findOne(dbName, collectionName, query);
-					}
+							standardDoc = await connection.findOne(dbName, collectionName, query);
+						}
 
-					log.info({ message: 'Getting indexes', dbName, collectionName });
-					log.progress('Getting indexes', dbName, collectionName);
+						log.info({ message: 'Getting indexes', dbName, collectionName });
+						log.progress('Getting indexes', dbName, collectionName);
 
-					const indexes = await connection.getIndexes(dbName, collectionName);
+						const indexes = await connection.getIndexes(dbName, collectionName);
 
-					const packageData = {
-						dbName,
-						collectionName,
-						documents: documents,
-						relationshipDocuments: filterPotentialForeignKeys(documents),
-						primaryKey: '_id',
-						standardDoc,
-						validation: {
-							jsonSchema: getJsonSchema(documents[0]),
-						},
-						entityLevel: {
-							Indxs: getIndexes(indexes),
-						},
-					};
+						const packageData = {
+							dbName,
+							collectionName,
+							documents: documents,
+							relationshipDocuments: filterPotentialForeignKeys(documents),
+							primaryKey: '_id',
+							standardDoc,
+							validation: {
+								jsonSchema: getJsonSchema(documents[0]),
+							},
+							entityLevel: {
+								Indxs: getIndexes(indexes),
+							},
+						};
 
-					log.info({ message: 'Collection processed', dbName, collectionName });
-					log.progress('Collection processed', dbName, collectionName);
+						log.info({ message: 'Collection processed', dbName, collectionName });
+						log.progress('Collection processed', dbName, collectionName);
 
-					return result.concat(packageData);
-				});
+						return result.concat(packageData);
+					},
+				);
 			});
 
 			cb(null, result, modelInfo, []);
