@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const getPathById = (schema, id, path) => {
 	if (schema.GUID === id) {
@@ -10,7 +10,10 @@ const getPathById = (schema, id, path) => {
 			if (newPath) {
 				return newPath;
 			} else {
-				return getPathById(schema.properties[propertyName], id, [...path, schema.properties[propertyName].GUID]);
+				return getPathById(schema.properties[propertyName], id, [
+					...path,
+					schema.properties[propertyName].GUID,
+				]);
 			}
 		}, undefined);
 	} else if (schema.items) {
@@ -29,7 +32,7 @@ const getPathById = (schema, id, path) => {
 };
 
 const getRootItemMetadataById = (id, properties) => {
-	const propertyName = Object.keys(properties).find(propertyName => (properties[propertyName].GUID === id));
+	const propertyName = Object.keys(properties).find(propertyName => properties[propertyName].GUID === id);
 
 	if (properties[propertyName] && properties[propertyName].code) {
 		return { name: properties[propertyName].code, isActivated: properties[propertyName].isActivated };
@@ -44,7 +47,7 @@ const findFieldMetadataById = (id, source) => {
 	if (path) {
 		return getRootItemMetadataById(path[0], source.properties);
 	} else {
-		return { name: "" };
+		return { name: '' };
 	}
 };
 
@@ -54,7 +57,7 @@ const getNamesByIds = (ids, sources) => {
 			const { name, isActivated } = findFieldMetadataById(id, sources[i]);
 
 			if (name) {
-				return Object.assign({}, hash, { [id]: { name, isActivated }});
+				return Object.assign({}, hash, { [id]: { name, isActivated } });
 			}
 		}
 

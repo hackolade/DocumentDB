@@ -4,7 +4,7 @@ const awsHelper = (connectionInfo, awsSdk) => {
 	if (instance) {
 		return instance;
 	}
-	
+
 	let awsOptions = ['accessKeyId', 'secretAccessKey', 'sessionToken', 'region'].reduce((options, key) => {
 		if (!connectionInfo[key]) {
 			return options;
@@ -22,18 +22,21 @@ const awsHelper = (connectionInfo, awsSdk) => {
 	const dbClusterIdentifier = connectionInfo.dbClusterIdentifier;
 	const clusterRegion = connectionInfo.region;
 
-	instance =  {
+	instance = {
 		getCluster() {
 			return new Promise((resolve, reject) => {
-				docDb.describeDBClusters({
-					DBClusterIdentifier: dbClusterIdentifier,
-				}, (err, data) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(data?.['DBClusters']?.[0]);
-					}
-				});
+				docDb.describeDBClusters(
+					{
+						DBClusterIdentifier: dbClusterIdentifier,
+					},
+					(err, data) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(data?.['DBClusters']?.[0]);
+						}
+					},
+				);
 			});
 		},
 		getRegion() {
@@ -41,16 +44,19 @@ const awsHelper = (connectionInfo, awsSdk) => {
 		},
 		tags(resourceName) {
 			return new Promise((resolve, reject) => {
-				docDb.listTagsForResource({
-					ResourceName: resourceName,
-				}, (err, data) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(data);
-					}
-				});
-			}); 
+				docDb.listTagsForResource(
+					{
+						ResourceName: resourceName,
+					},
+					(err, data) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(data);
+						}
+					},
+				);
+			});
 		},
 	};
 

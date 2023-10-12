@@ -197,12 +197,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "mode",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"",
-					"int32",
-					"int64",
-					"double"
-				]
+				"options": ["", "int32", "int64", "double"]
 			},
 			"minimum",
 			"exclusiveMinimum",
