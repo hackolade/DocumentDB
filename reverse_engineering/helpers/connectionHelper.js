@@ -40,9 +40,12 @@ const connectViaSsh = (info) => new Promise((resolve, reject) => {
 });
 
 function generateConnectionParams(connectionInfo){
+	const username = encodeURIComponentRFC3986(connectionInfo.username)
+	const password = encodeURIComponentRFC3986(connectionInfo.password)
+
 	if ((connectionInfo.sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' && connectionInfo.ssh) || connectionInfo.sslType === 'UNVALIDATED_SSL') {
 		return {
-			url: `mongodb://${connectionInfo.username}:${connectionInfo.password}@${connectionInfo.host}:${connectionInfo.port}/?retryWrites=false`,
+			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?retryWrites=false`,
 			options: {
 				tls: true,
 				tlsAllowInvalidHostnames: true,
@@ -53,7 +56,7 @@ function generateConnectionParams(connectionInfo){
 	}
 	if (connectionInfo.sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
 		return {
-			url: `mongodb://${connectionInfo.username}:${connectionInfo.password}@${connectionInfo.host}:${connectionInfo.port}/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
 			options: {
 				tlsCAFile: connectionInfo.certAuthority,
 				useUnifiedTopology: true,
@@ -61,7 +64,7 @@ function generateConnectionParams(connectionInfo){
 		};
 	} else {
 		return {
-			url: `mongodb://${connectionInfo.username}:${connectionInfo.password}@${connectionInfo.host}:${connectionInfo.port}/?replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
 			options: {
 				useNewUrlParser: true,
 				useUnifiedTopology: true,
@@ -326,6 +329,12 @@ function close() {
 		sshTunnel.close();
 		sshTunnel = null;
 	}
+};
+
+const encodeURIComponentRFC3986 = str => {
+	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+		return '%' + c.charCodeAt(0).toString(16);
+	});
 };
 
 module.exports = {
