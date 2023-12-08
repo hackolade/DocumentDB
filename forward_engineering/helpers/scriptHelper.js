@@ -1,4 +1,3 @@
-
 const schemaHelper = require('./schemaHelper');
 
 const isObjectEmpty = obj => Object.keys(obj).length === 0;
@@ -6,20 +5,30 @@ const isObjectEmpty = obj => Object.keys(obj).length === 0;
 const filterObject = obj => Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== undefined));
 
 const createIndexStatement = (...args) => {
-	return 'createIndex(' + args.map(filterObject).filter(arg => !isObjectEmpty(arg)).map(stringify).join(', ') + ');';
+	return (
+		'createIndex(' +
+		args
+			.map(filterObject)
+			.filter(arg => !isObjectEmpty(arg))
+			.map(stringify)
+			.join(', ') +
+		');'
+	);
 };
 
-const stringify = (data) => JSON.stringify(data, null, 2);
+const stringify = data => JSON.stringify(data, null, 2);
 
-const getIndexType = (indexType) => {
-	return ({
-		'descending': -1,
-		'ascending': 1,
-		'2DSphere': '2dsphere',
-	})[indexType] || 1;
+const getIndexType = indexType => {
+	return (
+		{
+			'descending': -1,
+			'ascending': 1,
+			'2DSphere': '2dsphere',
+		}[indexType] || 1
+	);
 };
 
-const createIndex = (index) => {
+const createIndex = index => {
 	let indexKeys = index?.key;
 
 	if (!Array.isArray(indexKeys)) {
@@ -33,29 +42,32 @@ const createIndex = (index) => {
 	}
 
 	return createIndexStatement(
-		indexKeys.reduce((result, indexKey) => ({
-			...result,
-			[indexKey.name]: getIndexType(indexKey.type),
-		}), {}),
+		indexKeys.reduce(
+			(result, indexKey) => ({
+				...result,
+				[indexKey.name]: getIndexType(indexKey.type),
+			}),
+			{},
+		),
 		filterObject({
 			name: index.name,
 			unique: index.unique ? index.unique : undefined,
 			sparse: index.sparse ? index.sparse : undefined,
 			background: index.background ? index.background : undefined,
 			expireAfterSeconds: index.expireAfterSeconds ? index.expireAfterSeconds : undefined,
-		})
+		}),
 	);
 };
 
-const getContainerName = (containerData) => {
+const getContainerName = containerData => {
 	return containerData[0]?.code || containerData[0]?.name;
 };
 
-const getCollectionName = (entityData) => {
+const getCollectionName = entityData => {
 	return entityData[0]?.code || entityData[0]?.collectionName;
 };
 
-const getCollection = (name) => {
+const getCollection = name => {
 	return `db.getCollection("${name}")`;
 };
 
@@ -71,61 +83,67 @@ const getIndexes = (entityData, data) => {
 		.join('\n\n');
 };
 
-const createCollection = (entityData) => {
+const createCollection = entityData => {
 	return `db.createCollection("${getCollectionName(entityData)}");`;
 };
 
-const getScript = (data) => {
+const getScript = data => {
 	const indexes = getIndexes(data.entityData, data);
 	const createStatement = createCollection(data.entityData);
 
 	return [createStatement, indexes].filter(Boolean).join('\n\n');
 };
 
-const updateSample = (sample) => {		
+const updateSample = sample => {
 	let data = JSON.parse(encodedExtendedTypes(sample));
 
-	return decodedExtendedTypes(JSON.stringify({
-		...data,
-	}, null, 2));
-};
-
-const fillKeys = ({ jsonSchema, definitions }) => (index) => {
-	const hashTable = schemaHelper.getNamesByIds(
-		index.key.map(key => key.keyId),
-		[
-			jsonSchema,
-			definitions.internal,
-			definitions.model,
-			definitions.external,
-		]
+	return decodedExtendedTypes(
+		JSON.stringify(
+			{
+				...data,
+			},
+			null,
+			2,
+		),
 	);
-
-	return {
-		...index,
-		key: index.key.map(key => {
-			return {
-				...key,
-				...(hashTable[key.keyId] || {})
-			};
-		}),
-	};
 };
+
+const fillKeys =
+	({ jsonSchema, definitions }) =>
+	index => {
+		const hashTable = schemaHelper.getNamesByIds(
+			index.key.map(key => key.keyId),
+			[jsonSchema, definitions.internal, definitions.model, definitions.external],
+		);
+
+		return {
+			...index,
+			key: index.key.map(key => {
+				return {
+					...key,
+					...(hashTable[key.keyId] || {}),
+				};
+			}),
+		};
+	};
 
 const insertSample = ({ entityData, sample }) => {
 	return getCollection(getCollectionName(entityData)) + `.insert(${updateSample(sample)});`;
 };
 
-const insertSamples = (data) => {
+const insertSamples = data => {
 	const useDb = useDbStatement(data.containerData);
-	const samples = data.entities.map(entityId => insertSample({
-		entityData: (data.entityData[entityId] || []),
-		sample: data.jsonData[entityId],
-	})).join('\n\n');
+	const samples = data.entities
+		.map(entityId =>
+			insertSample({
+				entityData: data.entityData[entityId] || [],
+				sample: data.jsonData[entityId],
+			}),
+		)
+		.join('\n\n');
 
 	return [useDb, samples].filter(Boolean).join('\n\n');
 };
-
 
 function decodedExtendedTypes(data, returnInStr) {
 	let decodedData;
@@ -163,7 +181,7 @@ function decodedExtendedTypes(data, returnInStr) {
 		});
 
 	return decodedData;
-};
+}
 
 function encodedExtendedTypes(data, returnInStr) {
 	let encodedData;
@@ -197,12 +215,9 @@ function encodedExtendedTypes(data, returnInStr) {
 				);
 			},
 		)
-		.replace(
-			/\{\s*\"_bsontype\": \"Code\",\s*\"code\": \"(.*?})\".*?\s*\}/gi,
-			function (a, b) {
-				return lineBeginning + `$__js_${b}` + lineEnding;
-			},
-		)
+		.replace(/\{\s*\"_bsontype\": \"Code\",\s*\"code\": \"(.*?})\".*?\s*\}/gi, function (a, b) {
+			return lineBeginning + `$__js_${b}` + lineEnding;
+		})
 		.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/, function (a, b) {
 			return lineBeginning + `$__minKey_${b}` + lineEnding;
 		})
@@ -211,9 +226,9 @@ function encodedExtendedTypes(data, returnInStr) {
 		});
 
 	return encodedData;
-};
+}
 
-const useDbStatement = (containerData) => {
+const useDbStatement = containerData => {
 	const name = getContainerName(containerData);
 	const useDb = name ? `use ${name};` : '';
 
