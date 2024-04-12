@@ -120,13 +120,6 @@ making sure that you maintain a proper JSON format.
 		"containerLevelKeys": [],
 		"structure": [
 			{
-				"propertyKeyword": "name",
-				"validation": {
-					"regex": "^[\\s\\S]{1,63}$",
-					"required": true
-				}
-			},
-			{
 				"propertyKeyword": "code",
 				"validation": {
 					"regex": "^[\\s\\S]{1,63}$"
