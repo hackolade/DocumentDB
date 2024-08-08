@@ -49,7 +49,10 @@
             "enableReverseEngineeringDetectionSchemaByContent": false,
             "enableReversingDateTypeAsISODate": true,
             "supportInferRelationships": true,
-            "enableREQueryAndSortCriteria": true
+            "enableREQueryAndSortCriteria": true,
+            "relationships": {
+                "entityNameSeparator": "."
+            }
         }
     },
     "description": "Hackolade plugin for Amazon DocumentDB",
