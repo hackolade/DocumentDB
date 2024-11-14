@@ -171,7 +171,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 				createConnectionHandler({ collectionName });
 			},
 			getCollection(collectionName) {
-				getCollectionHandler({ collectionName });
+				return getCollectionHandler({ collectionName });
 			},
 		},
 	};
