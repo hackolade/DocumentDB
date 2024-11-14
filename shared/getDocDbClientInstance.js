@@ -11,6 +11,7 @@ const getDocDbClientInstance = ({ connectionInfo = {} } = {}) => {
 
 	const { region, accessKeyId, secretAccessKey, sessionToken, queryRequestTimeout, dbClusterIdentifier } =
 		connectionInfo;
+
 	const docDbClient = new DocDBClient({
 		region,
 		credentials: {
@@ -22,8 +23,8 @@ const getDocDbClientInstance = ({ connectionInfo = {} } = {}) => {
 	});
 
 	instance = {
-		getCluster() {
-			const result = docDbClient.send(
+		async getCluster() {
+			const result = await docDbClient.send(
 				new DescribeDBClustersCommand({
 					DBClusterIdentifier: dbClusterIdentifier,
 				}),

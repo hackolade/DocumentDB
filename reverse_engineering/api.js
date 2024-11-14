@@ -50,8 +50,10 @@ module.exports = {
 
 		try {
 			getDocDbClientInstance({
-				...connectionInfo,
-				...parseHost(connectionInfo.host, log),
+				connectionInfo: {
+					...connectionInfo,
+					...parseHost(connectionInfo.host, log),
+				},
 			});
 
 			logger.clear();
