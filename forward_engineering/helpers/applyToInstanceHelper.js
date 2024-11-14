@@ -3,6 +3,7 @@ const bson = require('bson');
 const connectionHelper = require('../../shared/mongoDbClient');
 const { createLogger, getSystemInfo } = require('../../shared/logHelper');
 const readNdJsonByLine = require('./ndJsonHelper');
+const { getError } = require('../../shared/getError');
 
 const applyToInstanceHelper = {
 	async applyToInstance(data, logger, cb, app) {
@@ -99,7 +100,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 			logger.error(error, errMessage);
 			error.message = errMessage;
 
-			return Promise.reject(new Error(error));
+			return Promise.reject(getError(error));
 		};
 
 		const command = () => connection.createCollection(currentDb, collectionName).then(postProcess, errorHandler);
@@ -117,7 +118,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 					logger.error(error, errMessage);
 					error.message = errMessage;
 
-					return Promise.reject(new Error(error));
+					return Promise.reject(getError(error));
 				};
 
 				const command = () => collection.createIndex(fields, params).then(postProcess, errorHandler);
@@ -140,7 +141,7 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 					logger.error(error, errMessage);
 					error.message = errMessage;
 
-					return Promise.reject(new Error(error));
+					return Promise.reject(getError(error));
 				};
 
 				const command = () => collection.insertOne(data).then(postProcess).catch(errorHandler);

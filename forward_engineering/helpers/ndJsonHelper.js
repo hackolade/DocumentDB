@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { createInterface } = require('readline');
+const { getError } = require('../../shared/getError');
 
 const createNdJsonStream = (ndJsonFilePath, onData) => {
 	const stream = fs.createReadStream(ndJsonFilePath);
@@ -33,10 +34,8 @@ const getCountOfLines = filePath =>
 	});
 
 const createFileError = error => {
-	const fileError = new Error(error);
-
+	const fileError = getError(error);
 	fileError.type = 'file';
-
 	return fileError;
 };
 
@@ -60,7 +59,7 @@ const readNdJsonByLine = async (filePath, log) => {
 				return resolve(documents);
 			});
 		} catch (error) {
-			return reject(new Error(error));
+			return reject(getError(error));
 		}
 	});
 };

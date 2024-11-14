@@ -1,5 +1,6 @@
 const { MongoClient } = require('mongodb');
 const mongodbSample = require('mongodb-collection-sample');
+const { getError } = require('./getError');
 
 let sshTunnel = null;
 let connection = null;
@@ -106,9 +107,9 @@ const createConnection = ({ connection }) => {
 	const getDatabases = () => {
 		return new Promise((resolve, reject) => {
 			const db = connection.db();
-			db.admin().listDatabases((err, dbs) => {
-				if (err) {
-					return reject(new Error(err));
+			db.admin().listDatabases((error, dbs) => {
+				if (error) {
+					return reject(getError(error));
 				} else {
 					return resolve(dbs.databases);
 				}
@@ -121,12 +122,12 @@ const createConnection = ({ connection }) => {
 			const db = connection.db(dbName);
 
 			if (!db) {
-				return reject(new Error(`Failed connection to database "${dbName}"`));
+				return reject(getError(`Failed connection to database "${dbName}"`));
 			}
 
 			db.listCollections().toArray((err, collections) => {
 				if (err) {
-					return reject(new Error(err));
+					return reject(getError(err));
 				} else {
 					return resolve(collections);
 				}
@@ -140,7 +141,7 @@ const createConnection = ({ connection }) => {
 
 			db.admin().buildInfo((err, info) => {
 				if (err) {
-					reject(new Error(err));
+					reject(getError(err));
 				} else {
 					resolve(info);
 				}
@@ -199,7 +200,7 @@ const createConnection = ({ connection }) => {
 
 				streamError = err;
 
-				reject(new Error(err));
+				reject(getError(err));
 			};
 
 			const stream = getDataStream(dbName, collectionName, options);
@@ -228,7 +229,7 @@ const createConnection = ({ connection }) => {
 
 			collection.estimatedDocumentCount((err, count) => {
 				if (err) {
-					return reject(new Error(err));
+					return reject(getError(err));
 				} else {
 					return resolve(count);
 				}
@@ -243,7 +244,7 @@ const createConnection = ({ connection }) => {
 
 			collection.findOne(query, (err, result) => {
 				if (err) {
-					return reject(new Error(err));
+					return reject(getError(err));
 				} else {
 					return resolve(result);
 				}
@@ -272,7 +273,7 @@ const createConnection = ({ connection }) => {
 
 			collection.indexes({ full: true }, (err, indexes) => {
 				if (err) {
-					return reject(new Error(err));
+					return reject(getError(err));
 				}
 
 				return resolve(indexes);
