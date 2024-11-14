@@ -1,5 +1,5 @@
 const os = require('os');
-const packageFile = require('../../package.json');
+const packageFile = require('../package.json');
 
 const getPluginVersion = () => packageFile.version;
 
@@ -69,9 +69,7 @@ const createError = error => {
 	};
 };
 
-const logHelper = {
-	getSystemInfo,
+module.exports = {
 	createLogger,
+	getSystemInfo,
 };
-
-module.exports = logHelper;

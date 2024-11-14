@@ -1,10 +1,10 @@
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const mongodbSample = require('mongodb-collection-sample');
 
-let sshTunnel;
-let connection;
+let sshTunnel = null;
+let connection = null;
 
-function getSshConfig(info) {
+const getSshConfig = ({ connectionInfo: info }) => {
 	return {
 		sshTunnelUsername: info.ssh_user || 'ec2-user',
 		sshTunnelHostname: info.ssh_host,
@@ -13,12 +13,12 @@ function getSshConfig(info) {
 		sshTunnelIdentityFile: info.ssh_key_file,
 		sshTunnelPassphrase: info.ssh_key_passphrase,
 		host: info.host,
-		port: Number(info.port),
+		port: info.port ? Number(info.port) : null,
 	};
-}
+};
 
-const getSshConnectionSettings = async (connectionInfo, sshService) => {
-	const sshConnectionConfig = getSshConfig(connectionInfo);
+const getSshConnectionSettings = async ({ connectionInfo, sshService }) => {
+	const sshConnectionConfig = getSshConfig({ connectionInfo });
 	const { options } = await sshService.openTunnel(sshConnectionConfig);
 	return {
 		...connectionInfo,
@@ -27,83 +27,95 @@ const getSshConnectionSettings = async (connectionInfo, sshService) => {
 	};
 };
 
-function generateConnectionParams(connectionInfo) {
+const generateConnectionParams = ({ connectionInfo }) => {
+	const { host, port, sslType, ssh, certAuthority } = connectionInfo;
+
 	const username = encodeURIComponentRFC3986(connectionInfo.username);
 	const password = encodeURIComponentRFC3986(connectionInfo.password);
 
-	if (
-		(connectionInfo.sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' && connectionInfo.ssh) ||
-		connectionInfo.sslType === 'UNVALIDATED_SSL'
-	) {
+	const isTrustCustom = sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+
+	const baseUrl = `mongodb://${username}:${password}@${host}:${port}/?`;
+	const urlParams = new URLSearchParams('retryWrites=false');
+
+	const prepareUrl = () => `${baseUrl}${urlParams.toString()}`;
+
+	const commonOptions = {
+		useUnifiedTopology: true,
+	};
+
+	if ((isTrustCustom && ssh) || sslType === 'UNVALIDATED_SSL') {
 		return {
-			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?retryWrites=false`,
+			url: prepareUrl(),
 			options: {
+				...commonOptions,
 				tls: true,
 				tlsAllowInvalidHostnames: true,
-				useUnifiedTopology: true,
 				sslValidate: false,
 			},
 		};
 	}
-	if (connectionInfo.sslType === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
+
+	urlParams.set('replicaSet', 'rs0');
+	urlParams.set('readPreference', 'secondaryPreferred');
+
+	if (isTrustCustom) {
+		urlParams.set('tls', 'true');
 		return {
-			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+			url: prepareUrl(),
 			options: {
-				tlsCAFile: connectionInfo.certAuthority,
-				useUnifiedTopology: true,
+				...commonOptions,
+				tlsCAFile: certAuthority,
 			},
 		};
 	} else {
 		return {
-			url: `mongodb://${username}:${password}@${connectionInfo.host}:${connectionInfo.port}/?replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+			url: prepareUrl(),
 			options: {
+				...commonOptions,
 				useNewUrlParser: true,
-				useUnifiedTopology: true,
 			},
 		};
 	}
-}
+};
 
-async function connect(connectionInfo, sshService) {
+const connect = async (connectionInfo, sshService) => {
 	try {
 		if (connection) {
-			return createConnection(connection);
+			return createConnection({ connection });
 		}
 
 		if (connectionInfo.ssh) {
-			connectionInfo = await getSshConnectionSettings(connectionInfo, sshService);
+			connectionInfo = await getSshConnectionSettings({ connectionInfo, sshService });
 			sshTunnel = true;
 		}
 
-		const params = generateConnectionParams(connectionInfo);
+		const params = generateConnectionParams({ connectionInfo });
 
 		connection = await MongoClient.connect(params.url, params.options);
 
-		return createConnection(connection);
+		return createConnection({ connection });
 	} catch (err) {
-		throw {
-			message:
-				err.code === 18
-					? 'Authentication failed. Please, check connection settings and try again'
-					: err.message,
-			stack: err.stack,
-		};
+		const message =
+			err.code === 18 ? 'Authentication failed. Please, check connection settings and try again' : err.message;
+		throw new Error(message);
 	}
-}
+};
 
-function createConnection(connection) {
+const createConnection = ({ connection }) => {
 	const getDatabases = () => {
 		return new Promise((resolve, reject) => {
 			const db = connection.db();
 			db.admin().listDatabases((err, dbs) => {
 				if (err) {
-					return reject(err);
+					return reject(new Error(err));
 				} else {
 					return resolve(dbs.databases);
 				}
 			});
 		});
 	};
+
 	const getCollections = dbName => {
 		return new Promise((resolve, reject) => {
 			const db = connection.db(dbName);
@@ -114,7 +126,7 @@ function createConnection(connection) {
 
 			db.listCollections().toArray((err, collections) => {
 				if (err) {
-					return reject(err);
+					return reject(new Error(err));
 				} else {
 					return resolve(collections);
 				}
@@ -128,7 +140,7 @@ function createConnection(connection) {
 
 			db.admin().buildInfo((err, info) => {
 				if (err) {
-					reject(err);
+					reject(new Error(err));
 				} else {
 					resolve(info);
 				}
@@ -187,7 +199,7 @@ function createConnection(connection) {
 
 				streamError = err;
 
-				reject(err);
+				reject(new Error(err));
 			};
 
 			const stream = getDataStream(dbName, collectionName, options);
@@ -216,7 +228,7 @@ function createConnection(connection) {
 
 			collection.estimatedDocumentCount((err, count) => {
 				if (err) {
-					return reject(err);
+					return reject(new Error(err));
 				} else {
 					return resolve(count);
 				}
@@ -231,7 +243,7 @@ function createConnection(connection) {
 
 			collection.findOne(query, (err, result) => {
 				if (err) {
-					return reject(err);
+					return reject(new Error(err));
 				} else {
 					return resolve(result);
 				}
@@ -260,7 +272,7 @@ function createConnection(connection) {
 
 			collection.indexes({ full: true }, (err, indexes) => {
 				if (err) {
-					return reject(err);
+					return reject(new Error(err));
 				}
 
 				return resolve(indexes);
@@ -309,9 +321,9 @@ function createConnection(connection) {
 		getCollection,
 		createCollection,
 	};
-}
+};
 
-async function close(sshService) {
+const close = sshService => {
 	if (connection) {
 		connection.close();
 		connection = null;
@@ -319,15 +331,12 @@ async function close(sshService) {
 
 	if (sshTunnel) {
 		sshTunnel = false;
-		await sshService.closeConsumer();
+		sshService.closeConsumer();
 	}
-}
-
-const encodeURIComponentRFC3986 = str => {
-	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
-		return '%' + c.charCodeAt(0).toString(16);
-	});
 };
+
+const encodeURIComponentRFC3986 = str =>
+	encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
 
 module.exports = {
 	connect,

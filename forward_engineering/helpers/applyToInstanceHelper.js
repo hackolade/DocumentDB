@@ -1,12 +1,13 @@
 const vm = require('vm');
 const bson = require('bson');
-const connectionHelper = require('../../reverse_engineering/helpers/connectionHelper');
-const loggerHelper = require('../../reverse_engineering/helpers/logHelper');
+const connectionHelper = require('../../shared/mongoDbClient');
+const { createLogger, getSystemInfo } = require('../../shared/logHelper');
 const readNdJsonByLine = require('./ndJsonHelper');
 
 const applyToInstanceHelper = {
-	async applyToInstance(data, logger, cb) {
-		const log = loggerHelper.createLogger({
+	async applyToInstance(data, logger, cb, app) {
+		const sshService = app.require('@hackolade/ssh-service');
+		const log = createLogger({
 			title: 'Applying to instance',
 			hiddenKeys: data.hiddenKeys,
 			logger,
@@ -14,10 +15,10 @@ const applyToInstanceHelper = {
 
 		try {
 			logger.clear();
-			log.info(loggerHelper.getSystemInfo(data.appVersion));
+			log.info(getSystemInfo(data.appVersion));
 			log.info(data);
 
-			const connection = await connectionHelper.connect(data);
+			const connection = await connectionHelper.connect(data, sshService);
 
 			const { scriptWithSamples, numberOfSamples } = await generateScriptForInsertingDataInBulk(
 				data.script,
@@ -32,21 +33,18 @@ const applyToInstanceHelper = {
 				numberOfSamples,
 			});
 
-			connectionHelper.close();
+			connectionHelper.close(sshService);
 			cb(null);
 		} catch (error) {
 			log.error(error);
-			connectionHelper.close();
-
-			cb({
-				message: error.message,
-				stack: error.stack,
-			});
+			connectionHelper.close(sshService);
+			cb(error);
 		}
 	},
 
-	async testConnection(connectionInfo, logger, cb) {
-		const log = loggerHelper.createLogger({
+	async testConnection(connectionInfo, logger, cb, app) {
+		const sshService = app.require('@hackolade/ssh-service');
+		const log = createLogger({
 			title: 'Test connection',
 			hiddenKeys: connectionInfo.hiddenKeys,
 			logger,
@@ -54,22 +52,18 @@ const applyToInstanceHelper = {
 
 		try {
 			logger.clear();
-			log.info(loggerHelper.getSystemInfo(connectionInfo.appVersion));
+			log.info(getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo);
 
-			await connectionHelper.connect(connectionInfo);
-			connectionHelper.close();
+			await connectionHelper.connect(connectionInfo, sshService);
+			connectionHelper.close(sshService);
 
 			log.info('Connected successfully');
 
 			cb();
 		} catch (error) {
 			log.error(error);
-
-			return cb({
-				message: error.message,
-				stack: error.stack,
-			});
+			return cb(error);
 		}
 	},
 };
@@ -79,7 +73,7 @@ const replaceUseCommand = script => {
 		.split('\n')
 		.filter(Boolean)
 		.map(line => {
-			const useStatement = /^use\ ([\s\S]+);$/i;
+			const useStatement = /^use ([\s\S]+);$/i;
 			const result = line.match(useStatement);
 
 			if (!result) {
@@ -97,6 +91,63 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 	let insertedSamples = 0;
 	let prevInsertingProgress = 0;
 	const logger = createProgressLog(loggerInstance);
+
+	const createConnectionHandler = ({ collectionName }) => {
+		const postProcess = () => logger.info(`Collection ${collectionName} created`);
+		const errorHandler = error => {
+			const errMessage = `Collection ${collectionName} not created`;
+			logger.error(error, errMessage);
+			error.message = errMessage;
+
+			return Promise.reject(new Error(error));
+		};
+
+		const command = () => connection.createCollection(currentDb, collectionName).then(postProcess, errorHandler);
+		commands.push(command);
+	};
+
+	const getCollectionHandler = ({ collectionName }) => {
+		const collection = connection.getCollection(currentDb, collectionName);
+
+		return {
+			createIndex(fields, params = {}) {
+				const postProcess = () => logger.info(`index ${params.name} created`);
+				const errorHandler = error => {
+					const errMessage = `index ${params.name} not created`;
+					logger.error(error, errMessage);
+					error.message = errMessage;
+
+					return Promise.reject(new Error(error));
+				};
+
+				const command = () => collection.createIndex(fields, params).then(postProcess, errorHandler);
+				commands.push(command);
+			},
+			insert(data) {
+				const postProcess = () => {
+					insertedSamples++;
+					const insertingProgress = Math.round((insertedSamples / numberOfSamples) * 100);
+					if (insertingProgress - prevInsertingProgress < 5) {
+						return;
+					}
+					prevInsertingProgress = insertingProgress;
+
+					logger.info(`Inserting Samples: ${insertingProgress}%`);
+				};
+				const errorHandler = error => {
+					insertedSamples++;
+					const errMessage = `sample is not inserted ${insertedSamples} / ${numberOfSamples} Reason: ${error.message}`;
+					logger.error(error, errMessage);
+					error.message = errMessage;
+
+					return Promise.reject(new Error(error));
+				};
+
+				const command = () => collection.insertOne(data).then(postProcess).catch(errorHandler);
+				commands.push(command);
+			},
+		};
+	};
 
 	logger.info('Start applying instance ...');
 
@@ -116,69 +167,10 @@ const runMongoDbScript = ({ mongodbScript, logger: loggerInstance, connection, n
 
 		db: {
 			createCollection(collectionName) {
-				const command = () =>
-					connection.createCollection(currentDb, collectionName).then(
-						() => {
-							logger.info(`Collection ${collectionName} created`);
-						},
-						error => {
-							const errMessage = `Collection ${collectionName} not created`;
-							logger.error(error, errMessage);
-							error.message = errMessage;
-
-							return Promise.reject(error);
-						},
-					);
-
-				commands.push(command);
+				createConnectionHandler({ collectionName });
 			},
 			getCollection(collectionName) {
-				const collection = connection.getCollection(currentDb, collectionName);
-
-				return {
-					createIndex(fields, params = {}) {
-						const command = () =>
-							collection.createIndex(fields, params).then(
-								() => {
-									logger.info(`index ${params.name} created`);
-								},
-								error => {
-									const errMessage = `index ${params.name} not created`;
-									logger.error(error, errMessage);
-									error.message = errMessage;
-
-									return Promise.reject(error);
-								},
-							);
-
-						commands.push(command);
-					},
-					insert(data) {
-						const command = () =>
-							collection
-								.insertOne(data)
-								.then(() => {
-									insertedSamples++;
-									const insertingProgress = Math.round((insertedSamples / numberOfSamples) * 100);
-									if (insertingProgress - prevInsertingProgress < 5) {
-										return;
-									}
-									prevInsertingProgress = insertingProgress;
-
-									logger.info(`Inserting Samples: ${insertingProgress}%`);
-								})
-								.catch(error => {
-									insertedSamples++;
-									const errMessage = `sample is not inserted ${insertedSamples} / ${numberOfSamples} Reason: ${error.message}`;
-									logger.error(error, errMessage);
-									error.message = errMessage;
-
-									return Promise.reject(error);
-								});
-
-						commands.push(command);
-					},
-				};
+				getCollectionHandler({ collectionName });
 			},
 		},
 	};
@@ -241,8 +233,8 @@ const createProgressLog = logger => ({
 
 function convertBson(sample) {
 	return sample
-		.replace(/\{\s*\"\$minKey\": (\d*)\s*\}/gi, 'MinKey($1)')
-		.replace(/\{\s*\"\$maxKey\": (\d*)\s*\}/gi, 'MaxKey($1)');
+		.replace(/\{\s*"\$minKey": (\d*)\s*}/gi, 'MinKey($1)')
+		.replace(/\{\s*"\$maxKey": (\d*)\s*}/gi, 'MaxKey($1)');
 }
 
 module.exports = applyToInstanceHelper;

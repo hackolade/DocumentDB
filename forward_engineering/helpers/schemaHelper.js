@@ -1,5 +1,3 @@
-'use strict';
-
 const getPathById = (schema, id, path) => {
 	if (schema.GUID === id) {
 		return path;
@@ -34,11 +32,11 @@ const getPathById = (schema, id, path) => {
 const getRootItemMetadataById = (id, properties) => {
 	const propertyName = Object.keys(properties).find(propertyName => properties[propertyName].GUID === id);
 
-	if (properties[propertyName] && properties[propertyName].code) {
+	if (properties[propertyName]?.code) {
 		return { name: properties[propertyName].code, isActivated: properties[propertyName].isActivated };
 	}
 
-	return { name: propertyName, isActivated: properties[propertyName] && properties[propertyName].isActivated };
+	return { name: propertyName, isActivated: properties[propertyName]?.isActivated };
 };
 
 const findFieldMetadataById = (id, source) => {
@@ -53,11 +51,11 @@ const findFieldMetadataById = (id, source) => {
 
 const getNamesByIds = (ids, sources) => {
 	return ids.reduce((hash, id) => {
-		for (let i = 0; i < sources.length; i++) {
-			const { name, isActivated } = findFieldMetadataById(id, sources[i]);
+		for (const element of sources) {
+			const { name, isActivated } = findFieldMetadataById(id, element);
 
 			if (name) {
-				return Object.assign({}, hash, { [id]: { name, isActivated } });
+				return { ...hash, [id]: { name, isActivated } };
 			}
 		}
 

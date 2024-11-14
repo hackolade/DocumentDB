@@ -60,7 +60,7 @@ const readNdJsonByLine = async (filePath, log) => {
 				return resolve(documents);
 			});
 		} catch (error) {
-			return reject(error);
+			return reject(new Error(error));
 		}
 	});
 };
