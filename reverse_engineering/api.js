@@ -1,15 +1,13 @@
-'use strict';
-
 const async = require('async');
-const connectionHelper = require('./helpers/connectionHelper');
-const { createLogger, getSystemInfo } = require('./helpers/logHelper');
 const bson = require('bson');
-const awsHelper = require('./helpers/awsHelper');
+const connectionHelper = require('../shared/mongoDbClient');
+const { createLogger, getSystemInfo } = require('../shared/logHelper');
+const { getDocDbClientInstance } = require('../shared/getDocDbClientInstance');
 
 module.exports = {
 	disconnect: async function (connectionInfo, logger, cb, app) {
 		const sshService = app.require('@hackolade/ssh-service');
-		await connectionHelper.close(sshService);
+		connectionHelper.close(sshService);
 		cb();
 	},
 
@@ -43,7 +41,6 @@ module.exports = {
 
 	async getDbCollectionsNames(connectionInfo, logger, cb, app) {
 		const sshService = app.require('@hackolade/ssh-service');
-		const awsSdk = app.require('aws-sdk');
 
 		const log = createLogger({
 			title: 'Retrieving databases and collections information',
@@ -52,13 +49,12 @@ module.exports = {
 		});
 
 		try {
-			awsHelper(
-				{
+			getDocDbClientInstance({
+				connectionInfo: {
 					...connectionInfo,
 					...parseHost(connectionInfo.host, log),
 				},
-				awsSdk,
-			);
+			});
 
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
@@ -112,7 +108,7 @@ module.exports = {
 		}
 	},
 
-	async getDbCollectionsData(data, logger, cb, app) {
+	async getDbCollectionsData(data, logger, cb) {
 		const log = createLogger({
 			title: 'Retrieving data for inferring schema',
 			hiddenKeys: data.hiddenKeys,
@@ -124,7 +120,7 @@ module.exports = {
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
 			const maxTimeMS = Number(data.queryRequestTimeout) || 120000;
-			const awsConnection = awsHelper();
+			const docDbClientInstance = getDocDbClientInstance();
 
 			log.info({
 				title: 'Parameters',
@@ -143,15 +139,15 @@ module.exports = {
 				log.info('Getting cluster information');
 				log.progress('Getting cluster information ...');
 
-				const cluster = await awsConnection.getCluster();
+				const cluster = await docDbClientInstance.getCluster();
 				if (!cluster) {
 					throw new Error("Cluster doesn't exist in the chosen region.");
 				}
-				const tags = await awsConnection.tags(cluster['DBClusterArn']);
+				const tags = await docDbClientInstance.tags(cluster['DBClusterArn']);
 				const clusterData = getClusterData(cluster);
 				modelInfo = {
 					...modelInfo,
-					'source-region': awsConnection.getRegion(),
+					'source-region': docDbClientInstance.getRegion(),
 					...clusterData,
 					tags: tags['TagList']?.map(tag => ({
 						tagName: tag['Key'],
@@ -167,71 +163,67 @@ module.exports = {
 			}
 
 			const result = await async.reduce(collectionData.dataBaseNames, [], async (result, dbName) => {
-				return await async.reduce(
-					collectionData.collections[dbName],
-					result,
-					async (result, collectionName) => {
-						log.info({ message: 'Calculate count of documents', dbName, collectionName });
-						log.progress('Calculate count of documents', dbName, collectionName);
+				return async.reduce(collectionData.collections[dbName], result, async (result, collectionName) => {
+					log.info({ message: 'Calculate count of documents', dbName, collectionName });
+					log.progress('Calculate count of documents', dbName, collectionName);
 
-						const count = await connection.getCount(dbName, collectionName);
+					const count = await connection.getCount(dbName, collectionName);
 
-						if (!includeEmptyCollection && count === 0) {
-							return result;
-						}
+					if (!includeEmptyCollection && count === 0) {
+						return result;
+					}
 
-						const limit = getSampleDocSize(count, recordSamplingSettings);
+					const limit = getSampleDocSize(count, recordSamplingSettings);
 
-						log.info({
-							message: 'Getting documents for sampling',
-							dbName,
-							collectionName,
-							countOfDocuments: count,
-							documentsToSample: limit,
-						});
-						log.progress('Getting documents for sampling', dbName, collectionName);
+					log.info({
+						message: 'Getting documents for sampling',
+						dbName,
+						collectionName,
+						countOfDocuments: count,
+						documentsToSample: limit,
+					});
+					log.progress('Getting documents for sampling', dbName, collectionName);
 
-						const documents = await connection.getRandomDocuments(dbName, collectionName, {
-							maxTimeMS,
-							limit,
-							query,
-							sort,
-						});
-						let standardDoc = {};
+					const documents = await connection.getRandomDocuments(dbName, collectionName, {
+						maxTimeMS,
+						limit,
+						query,
+						sort,
+					});
+					let standardDoc = {};
 
-						if (fieldInference.active === 'field') {
-							log.info({ message: 'Getting a document for inferring', dbName, collectionName });
-							log.progress('Getting a document for inferring', dbName, collectionName);
+					if (fieldInference.active === 'field') {
+						log.info({ message: 'Getting a document for inferring', dbName, collectionName });
+						log.progress('Getting a document for inferring', dbName, collectionName);
 
-							standardDoc = await connection.findOne(dbName, collectionName, query);
-						}
+						standardDoc = await connection.findOne(dbName, collectionName, query);
+					}
 
-						log.info({ message: 'Getting indexes', dbName, collectionName });
-						log.progress('Getting indexes', dbName, collectionName);
+					log.info({ message: 'Getting indexes', dbName, collectionName });
+					log.progress('Getting indexes', dbName, collectionName);
 
-						const indexes = await connection.getIndexes(dbName, collectionName);
+					const indexes = await connection.getIndexes(dbName, collectionName);
 
-						const packageData = {
-							dbName,
-							collectionName,
-							documents: documents,
-							relationshipDocuments: filterPotentialForeignKeys(documents),
-							primaryKey: '_id',
-							standardDoc,
-							validation: {
-								jsonSchema: getJsonSchema(documents[0]),
-							},
-							entityLevel: {
-								Indxs: getIndexes(indexes),
-							},
-						};
+					const packageData = {
+						dbName,
+						collectionName,
+						documents: documents,
+						relationshipDocuments: filterPotentialForeignKeys(documents),
+						primaryKey: '_id',
+						standardDoc,
+						validation: {
+							jsonSchema: getJsonSchema(documents[0]),
+						},
+						entityLevel: {
+							Indxs: getIndexes(indexes),
+						},
+					};
 
-						log.info({ message: 'Collection processed', dbName, collectionName });
-						log.progress('Collection processed', dbName, collectionName);
+					log.info({ message: 'Collection processed', dbName, collectionName });
+					log.progress('Collection processed', dbName, collectionName);
 
-						return result.concat(packageData);
-					},
-				);
+					return result.concat(packageData);
+				});
 			});
 
 			cb(null, result, modelInfo, []);
@@ -319,7 +311,9 @@ const getSampleDocSize = (count, recordSamplingSettings) => {
 function getJsonSchema(doc) {
 	if (doc instanceof bson.ObjectID || doc instanceof bson.DBRef) {
 		return;
-	} else if (Array.isArray(doc)) {
+	}
+
+	if (Array.isArray(doc)) {
 		const items = getJsonSchema(doc[0]);
 		if (items) {
 			return {

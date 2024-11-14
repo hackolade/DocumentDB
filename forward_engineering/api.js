@@ -54,7 +54,8 @@ module.exports = {
 			callback(error);
 		}
 	},
-	generateScript(data, logger, callback, app) {
+
+	generateScript(data, logger, callback) {
 		try {
 			const useDb = scriptHelper.useDbStatement(data.containerData);
 			const script = scriptHelper.getScript({
@@ -80,6 +81,7 @@ module.exports = {
 			callback(error);
 		}
 	},
+
 	applyToInstance: applyToInstanceHelper.applyToInstance,
 
 	testConnection: applyToInstanceHelper.testConnection,

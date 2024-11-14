@@ -61,22 +61,24 @@
         "package": "node esbuild.package.js"
     },
     "dependencies": {
-        "async": "^3.2.4",
-        "bson": "^1.1.6",
-        "lodash": "^4.17.21",
-        "mongodb": "^3.7.3",
-        "mongodb-collection-sample": "^4.5.1"
+        "@aws-sdk/client-docdb": "3.687.0",
+        "@hackolade/fetch": "1.1.0",
+        "async": "3.2.6",
+        "bson": "1.1.6",
+        "lodash": "4.17.21",
+        "mongodb": "3.7.3",
+        "mongodb-collection-sample": "4.5.1"
     },
     "devDependencies": {
         "@hackolade/hck-esbuild-plugins-pack": "0.0.1",
-        "@typescript-eslint/parser": "7.11.0",
         "@typescript-eslint/eslint-plugin": "7.11.0",
+        "@typescript-eslint/parser": "7.11.0",
         "esbuild": "0.20.2",
         "esbuild-plugin-clean": "1.0.1",
         "eslint": "8.57.0",
         "eslint-config-prettier": "9.1.0",
-        "eslint-formatter-teamcity": "^1.0.0",
-        "eslint-plugin-import": "^2.26.0",
+        "eslint-formatter-teamcity": "1.0.0",
+        "eslint-plugin-import": "2.26.0",
         "eslint-plugin-prettier": "5.1.3",
         "eslint-plugin-unused-imports": "3.2.0",
         "lint-staged": "14.0.1",
