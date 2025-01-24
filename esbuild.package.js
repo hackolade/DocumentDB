@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const esbuild = require('esbuild');
 const { clean } = require('esbuild-plugin-clean');
+const { copy } = require('esbuild-plugin-copy');
 const { copyFolderFiles, addReleaseFlag } = require('@hackolade/hck-esbuild-plugins-pack');
 const { EXCLUDED_EXTENSIONS, EXCLUDED_FILES, DEFAULT_RELEASE_FOLDER_PATH } = require('./buildConstants');
 
@@ -26,6 +27,12 @@ esbuild
 			clean({
 				patterns: [DEFAULT_RELEASE_FOLDER_PATH],
 			}),
+			copy({
+				assets: {
+					from: [path.join('node_modules', 'lodash', '**', '*')],
+					to: [path.join('node_modules', 'lodash')],
+				},
+			}),
 			copyFolderFiles({
 				fromPath: __dirname,
 				targetFolderPath: RELEASE_FOLDER_PATH,
@@ -34,6 +41,6 @@ esbuild
 			}),
 			addReleaseFlag(path.resolve(RELEASE_FOLDER_PATH, 'package.json')),
 		],
-		external: ['electron'],
+		external: ['electron', 'lodash'],
 	})
 	.catch(() => process.exit(1));
