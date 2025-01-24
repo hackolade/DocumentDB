@@ -17,7 +17,6 @@ esbuild
 			path.resolve(__dirname, 'reverse_engineering', 'api.js'),
 		],
 		bundle: true,
-		treeShaking: true,
 		keepNames: true,
 		platform: 'node',
 		target: 'node16',
