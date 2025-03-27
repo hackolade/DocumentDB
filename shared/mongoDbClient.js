@@ -222,13 +222,8 @@ const createConnection = ({ connection }) => {
 		});
 	};
 
-	const getCountByDirectCommand = ({ db, collectionName, scale = 1000000 }) => {
-		return new Promise((resolve, reject) => {
-			db.command({ collStats: collectionName, scale })
-				.then(resolve)
-				.catch(err => reject(getError(err)));
-		});
-	};
+	const getCountByDirectCommand = ({ db, collectionName, scale = 1000000 }) =>
+		db.command({ collStats: collectionName, scale }).catch(err => Promise.reject(getError(err)));
 
 	const getCount = (dbName, collectionName) => {
 		return new Promise((resolve, reject) => {
@@ -241,7 +236,7 @@ const createConnection = ({ connection }) => {
 				}
 
 				if (err.message.includes('Unrecognized pipeline stage name: $collStats')) {
-					resolve(getCountByDirectCommand({ db, collectionName }));
+					return getCountByDirectCommand({ db, collectionName }).then(resolve).catch(reject);
 				}
 
 				return reject(getError(err));
