@@ -54,7 +54,7 @@ const applyToInstanceHelper = {
 		try {
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
+			log.info(connectionInfo, 'connectionInfo');
 
 			await connectionHelper.connect(connectionInfo, sshService);
 			connectionHelper.close(sshService);
