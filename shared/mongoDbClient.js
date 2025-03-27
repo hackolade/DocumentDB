@@ -222,17 +222,29 @@ const createConnection = ({ connection }) => {
 		});
 	};
 
+	const getCountByDirectCommand = ({ db, collectionName, scale = 1000000 }) => {
+		return new Promise((resolve, reject) => {
+			db.command({ collStats: collectionName, scale })
+				.then(resolve)
+				.catch(err => reject(getError(err)));
+		});
+	};
+
 	const getCount = (dbName, collectionName) => {
 		return new Promise((resolve, reject) => {
 			const db = connection.db(dbName);
 			const collection = db.collection(collectionName);
 
 			collection.estimatedDocumentCount((err, count) => {
-				if (err) {
-					return reject(getError(err));
-				} else {
+				if (!err) {
 					return resolve(count);
 				}
+
+				if (err.message.includes('Unrecognized pipeline stage name: $collStats')) {
+					resolve(getCountByDirectCommand({ db, collectionName }));
+				}
+
+				return reject(getError(err));
 			});
 		});
 	};
