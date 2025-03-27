@@ -45,8 +45,8 @@ const toTime = number => {
 
 const createLogger = ({ title, logger, hiddenKeys }) => {
 	return {
-		info(message) {
-			logger.log('info', { message }, title, hiddenKeys);
+		info(message, infoTitle) {
+			logger.log('info', message, infoTitle || title, hiddenKeys);
 		},
 
 		progress(message, dbName = '', tableName = '') {

@@ -22,7 +22,7 @@ module.exports = {
 		try {
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
+			log.info(connectionInfo, 'connectionInfo');
 
 			await connectionHelper.connect(connectionInfo, sshService);
 
@@ -58,7 +58,7 @@ module.exports = {
 
 			logger.clear();
 			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
+			log.info(connectionInfo, 'connectionInfo');
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
 			const connection = await connectionHelper.connect(connectionInfo, sshService);
