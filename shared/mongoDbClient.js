@@ -23,7 +23,7 @@ const getSshConnectionSettings = async ({ connectionInfo, sshService }) => {
 	const { options } = await sshService.openTunnel(sshConnectionConfig);
 	return {
 		...connectionInfo,
-		host: options.host,
+		host: options.escapedHostForUrl,
 		port: options.port.toString() || '22',
 	};
 };
