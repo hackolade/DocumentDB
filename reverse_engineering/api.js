@@ -49,11 +49,12 @@ module.exports = {
 		});
 
 		try {
-			getDocDbClientInstance({
+			await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
 					...parseHost(connectionInfo.host, log),
 				},
+				logger: log,
 			});
 
 			logger.clear();
@@ -120,7 +121,7 @@ module.exports = {
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
 			const maxTimeMS = Number(data.queryRequestTimeout) || 120000;
-			const docDbClientInstance = getDocDbClientInstance();
+			const docDbClientInstance = await getDocDbClientInstance({ logger: log });
 
 			log.info({
 				title: 'Parameters',
