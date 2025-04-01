@@ -49,6 +49,11 @@ module.exports = {
 		});
 
 		try {
+			logger.clear();
+
+			log.info(getSystemInfo(connectionInfo.appVersion));
+			log.info(connectionInfo, 'connectionInfo');
+
 			await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
@@ -56,10 +61,6 @@ module.exports = {
 				},
 				logger: log,
 			});
-
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
 			const connection = await connectionHelper.connect(connectionInfo, sshService);

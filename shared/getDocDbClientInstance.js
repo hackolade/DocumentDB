@@ -6,12 +6,19 @@ const { hckFetchAwsSdkHttpHandler } = require('@hackolade/fetch');
 let instance = null;
 
 const getCredentials = async ({ connectionInfo = {}, logger = {} }) => {
+	const logSessionToken = () => logger.info(`AWS session token provided, including it into credentials.`);
+
 	const { accessKeyId, secretAccessKey, sessionToken } = connectionInfo;
 
 	if (!accessKeyId || !secretAccessKey) {
 		logger.info(`'Access Key ID' or 'Secret Access Key' were not specified, checking system AWS credentials...`);
 		try {
-			return await fromIni()();
+			const credentials = await fromIni()();
+			logger.info('AWS credentials were successfully obtained from the file.');
+			if (credentials.sessionToken) {
+				logSessionToken();
+			}
+			return credentials;
 		} catch (error) {
 			logger.error(error);
 			return {};
@@ -19,7 +26,7 @@ const getCredentials = async ({ connectionInfo = {}, logger = {} }) => {
 	}
 
 	if (sessionToken) {
-		logger.info(`AWS session token provided, including it into credentials.`);
+		logSessionToken();
 	}
 
 	return {
