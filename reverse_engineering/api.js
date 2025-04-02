@@ -49,16 +49,18 @@ module.exports = {
 		});
 
 		try {
-			getDocDbClientInstance({
+			logger.clear();
+
+			log.info(getSystemInfo(connectionInfo.appVersion));
+			log.info(connectionInfo, 'connectionInfo');
+
+			await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
 					...parseHost(connectionInfo.host, log),
 				},
+				logger: log,
 			});
-
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
 			const connection = await connectionHelper.connect(connectionInfo, sshService);
@@ -120,7 +122,7 @@ module.exports = {
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
 			const maxTimeMS = Number(data.queryRequestTimeout) || 120000;
-			const docDbClientInstance = getDocDbClientInstance();
+			const docDbClientInstance = await getDocDbClientInstance({ logger: log });
 
 			log.info({
 				title: 'Parameters',
