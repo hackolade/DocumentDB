@@ -52,8 +52,7 @@
             "enableREQueryAndSortCriteria": true,
             "relationships": {
                 "entityNameSeparator": "."
-            },
-            "checkAwsCredentials": true
+            }
         }
     },
     "description": "Hackolade plugin for Amazon DocumentDB",
