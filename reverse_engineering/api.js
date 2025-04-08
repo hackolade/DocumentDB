@@ -39,6 +39,50 @@ module.exports = {
 		}
 	},
 
+	async validateConnection(connectionInfo, logger, cb) {
+		const log = createLogger({
+			title: 'Validate connection',
+			hiddenKeys: connectionInfo.hiddenKeys,
+			logger,
+		});
+
+		try {
+			logger.clear();
+			log.info(getSystemInfo(connectionInfo.appVersion));
+			log.info(connectionInfo, 'connectionInfo');
+
+			const docDbClientInstance = await getDocDbClientInstance({
+				connectionInfo: {
+					...connectionInfo,
+					...parseHost(connectionInfo.host, log),
+				},
+				logger: log,
+			});
+
+			log.info('Getting cluster information');
+
+			try {
+				const cluster = await docDbClientInstance.getCluster();
+				if (!cluster) {
+					return cb(null, "Cluster doesn't exist in the chosen region.");
+				}
+			} catch (err) {
+				return cb(null, err);
+			}
+
+			log.info('Cluster information retrieved successfully');
+
+			cb();
+		} catch (error) {
+			log.error(error);
+
+			return cb({
+				message: error.message,
+				stack: error.stack,
+			});
+		}
+	},
+
 	async getDbCollectionsNames(connectionInfo, logger, cb, app) {
 		const sshService = app.require('@hackolade/ssh-service');
 
@@ -49,11 +93,6 @@ module.exports = {
 		});
 
 		try {
-			logger.clear();
-
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
-
 			await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
