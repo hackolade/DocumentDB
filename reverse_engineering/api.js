@@ -61,10 +61,13 @@ module.exports = {
 
 			log.info('Getting cluster information');
 
-			const cluster = await docDbClientInstance.getCluster();
-
-			if (!cluster) {
-				cb(null, "Cluster doesn't exist in the chosen region.");
+			try {
+				const cluster = await docDbClientInstance.getCluster();
+				if (!cluster) {
+					return cb(null, "Cluster doesn't exist in the chosen region.");
+				}
+			} catch (err) {
+				return cb(null, err);
 			}
 
 			log.info('Cluster information retrieved successfully');
