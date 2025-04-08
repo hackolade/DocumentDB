@@ -90,8 +90,6 @@ module.exports = {
 		});
 
 		try {
-			logger.clear();
-
 			log.info(getSystemInfo(connectionInfo.appVersion));
 			log.info(connectionInfo, 'connectionInfo');
 
