@@ -35,6 +35,50 @@ module.exports = {
 		}
 	},
 
+	async validateConnection(connectionInfo, logger, cb) {
+		const log = createLogger({
+			title: 'Validate connection',
+			hiddenKeys: connectionInfo.hiddenKeys,
+			logger,
+		});
+
+		try {
+			logger.clear();
+			log.info(getSystemInfo(connectionInfo.appVersion));
+			log.info(connectionInfo, 'connectionInfo');
+
+			const docDbClientInstance = await getDocDbClientInstance({
+				connectionInfo: {
+					...connectionInfo,
+					...parseHost(connectionInfo.host, log),
+				},
+				logger: log,
+			});
+
+			log.info('Getting cluster information');
+
+			try {
+				const cluster = await docDbClientInstance.getCluster();
+				if (!cluster) {
+					return cb(null, "Cluster doesn't exist in the chosen region.");
+				}
+			} catch (err) {
+				return cb(null, err);
+			}
+
+			log.info('Cluster information retrieved successfully');
+
+			cb();
+		} catch (error) {
+			log.error(error);
+
+			return cb({
+				message: error.message,
+				stack: error.stack,
+			});
+		}
+	},
+
 	async getDbCollectionsNames(connectionInfo, logger, cb, app) {
 		const sshService = app.require('@hackolade/ssh-service');
 
@@ -45,11 +89,12 @@ module.exports = {
 		});
 
 		try {
-			getDocDbClientInstance({
+			await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
 					...parseHost(connectionInfo.host, log),
 				},
+				logger: log,
 			});
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
@@ -112,7 +157,7 @@ module.exports = {
 			const query = safeParse(data.queryCriteria);
 			const sort = safeParse(data.sortCriteria);
 			const maxTimeMS = Number(data.queryRequestTimeout) || 120000;
-			const docDbClientInstance = getDocDbClientInstance();
+			const docDbClientInstance = await getDocDbClientInstance({ logger: log });
 
 			log.info({
 				title: 'Parameters',

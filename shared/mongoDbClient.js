@@ -23,7 +23,7 @@ const getSshConnectionSettings = async ({ connectionInfo, sshService }) => {
 	const { options } = await sshService.openTunnel(sshConnectionConfig);
 	return {
 		...connectionInfo,
-		host: options.host,
+		host: options.escapedHostForUrl,
 		port: options.port.toString() || '22',
 	};
 };
@@ -222,17 +222,24 @@ const createConnection = ({ connection }) => {
 		});
 	};
 
+	const getCountByDirectCommand = ({ db, collectionName, scale = 1000000 }) =>
+		db.command({ collStats: collectionName, scale }).catch(err => Promise.reject(getError(err)));
+
 	const getCount = (dbName, collectionName) => {
 		return new Promise((resolve, reject) => {
 			const db = connection.db(dbName);
 			const collection = db.collection(collectionName);
 
 			collection.estimatedDocumentCount((err, count) => {
-				if (err) {
-					return reject(getError(err));
-				} else {
+				if (!err) {
 					return resolve(count);
 				}
+
+				if (err.message.includes('Unrecognized pipeline stage name: $collStats')) {
+					return getCountByDirectCommand({ db, collectionName }).then(resolve).catch(reject);
+				}
+
+				return reject(getError(err));
 			});
 		});
 	};
