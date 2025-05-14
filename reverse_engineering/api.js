@@ -20,10 +20,6 @@ module.exports = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
-
 			await connectionHelper.connect(connectionInfo, sshService);
 
 			log.info('Connected successfully');
@@ -55,10 +51,6 @@ module.exports = {
 					...parseHost(connectionInfo.host, log),
 				},
 			});
-
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
 
 			const includeSystemCollection = connectionInfo.includeSystemCollection;
 			const connection = await connectionHelper.connect(connectionInfo, sshService);

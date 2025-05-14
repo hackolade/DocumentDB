@@ -15,10 +15,6 @@ const applyToInstanceHelper = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(data.appVersion));
-			log.info(data);
-
 			const connection = await connectionHelper.connect(data, sshService);
 
 			const { scriptWithSamples, numberOfSamples } = await generateScriptForInsertingDataInBulk(
@@ -52,10 +48,6 @@ const applyToInstanceHelper = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo);
-
 			await connectionHelper.connect(connectionInfo, sshService);
 			connectionHelper.close(sshService);
 
