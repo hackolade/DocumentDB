@@ -1,7 +1,7 @@
 const async = require('async');
 const bson = require('bson');
 const connectionHelper = require('../shared/mongoDbClient');
-const { createLogger, getSystemInfo } = require('../shared/logHelper');
+const { createLogger } = require('../shared/logHelper');
 const { getDocDbClientInstance } = require('../shared/getDocDbClientInstance');
 
 module.exports = {

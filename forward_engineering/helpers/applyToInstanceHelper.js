@@ -1,7 +1,7 @@
 const vm = require('vm');
 const bson = require('bson');
 const connectionHelper = require('../../shared/mongoDbClient');
-const { createLogger, getSystemInfo } = require('../../shared/logHelper');
+const { createLogger } = require('../../shared/logHelper');
 const readNdJsonByLine = require('./ndJsonHelper');
 const { getError } = require('../../shared/getError');
 
