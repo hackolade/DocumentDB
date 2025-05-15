@@ -1,7 +1,7 @@
 const vm = require('vm');
 const bson = require('bson');
 const connectionHelper = require('../../shared/mongoDbClient');
-const { createLogger, getSystemInfo } = require('../../shared/logHelper');
+const { createLogger } = require('../../shared/logHelper');
 const readNdJsonByLine = require('./ndJsonHelper');
 const { getError } = require('../../shared/getError');
 
@@ -15,10 +15,6 @@ const applyToInstanceHelper = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(data.appVersion));
-			log.info(data);
-
 			const connection = await connectionHelper.connect(data, sshService);
 
 			const { scriptWithSamples, numberOfSamples } = await generateScriptForInsertingDataInBulk(
@@ -52,10 +48,6 @@ const applyToInstanceHelper = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
-
 			await connectionHelper.connect(connectionInfo, sshService);
 			connectionHelper.close(sshService);
 

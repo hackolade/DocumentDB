@@ -1,7 +1,7 @@
 const async = require('async');
 const bson = require('bson');
 const connectionHelper = require('../shared/mongoDbClient');
-const { createLogger, getSystemInfo } = require('../shared/logHelper');
+const { createLogger } = require('../shared/logHelper');
 const { getDocDbClientInstance } = require('../shared/getDocDbClientInstance');
 
 module.exports = {
@@ -20,10 +20,6 @@ module.exports = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
-
 			await connectionHelper.connect(connectionInfo, sshService);
 
 			log.info('Connected successfully');
@@ -47,10 +43,6 @@ module.exports = {
 		});
 
 		try {
-			logger.clear();
-			log.info(getSystemInfo(connectionInfo.appVersion));
-			log.info(connectionInfo, 'connectionInfo');
-
 			const docDbClientInstance = await getDocDbClientInstance({
 				connectionInfo: {
 					...connectionInfo,
