@@ -59,7 +59,8 @@
     "scripts": {
         "lint": "oxlint . || true",
         "package": "node esbuild.package.js",
-        "lint:check": "oxlint --type-aware --type-check . || true"
+        "lint:check": "oxlint --type-aware --type-check . || true",
+        "format": "prettier --write ."
     },
     "dependencies": {
         "@aws-sdk/client-docdb": "3.982.0",
@@ -84,11 +85,8 @@
         "oxlint-tsgolint": "0.10.1",
         "@ianvs/prettier-plugin-sort-imports": "4.7.1"
     },
-    "lint-staged": {
-        "*.{js,json}": "prettier --write"
-    },
     "simple-git-hooks": {
-        "pre-commit": "npm run package && npx lint-staged",
+        "pre-commit": "npm run package && npx lint-staged --config lint-staged.config.js",
         "pre-push": "npm run lint"
     },
     "overrides": {
