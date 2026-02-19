@@ -89,5 +89,8 @@
     "simple-git-hooks": {
         "pre-commit": "npm run package && npx lint-staged",
         "pre-push": "npm run lint"
+    },
+    "overrides": {
+        "minimatch": "10.2.1"
     }
 }
