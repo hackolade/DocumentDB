@@ -52,7 +52,8 @@
             "enableREQueryAndSortCriteria": true,
             "relationships": {
                 "entityNameSeparator": "."
-            }
+            },
+            "restrictNestedFieldsAsPrimaryKey": false
         }
     },
     "description": "Hackolade plugin for Amazon DocumentDB",
