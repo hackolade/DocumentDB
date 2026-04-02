@@ -69,22 +69,22 @@
         "@hackolade/fetch": "1.1.0",
         "async": "3.2.6",
         "bson": "1.1.6",
-        "lodash": "4.17.23",
+        "lodash": "4.18.1",
         "mongodb": "3.7.3",
         "mongodb-collection-sample": "4.5.1"
     },
     "devDependencies": {
         "@hackolade/hck-esbuild-plugins-pack": "0.0.1",
+        "@ianvs/prettier-plugin-sort-imports": "4.7.1",
         "esbuild": "0.27.3",
         "esbuild-node-externals": "1.20.1",
         "esbuild-plugin-clean": "1.0.1",
         "esbuild-plugin-copy": "2.1.1",
         "lint-staged": "16.2.7",
-        "prettier": "3.8.1",
-        "simple-git-hooks": "2.13.1",
         "oxlint": "1.38.0",
         "oxlint-tsgolint": "0.10.1",
-        "@ianvs/prettier-plugin-sort-imports": "4.7.1"
+        "prettier": "3.8.1",
+        "simple-git-hooks": "2.13.1"
     },
     "simple-git-hooks": {
         "pre-commit": "npm run package && npx lint-staged --config lint-staged.config.js",
