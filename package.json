@@ -65,7 +65,8 @@
     },
     "dependencies": {
         "@aws-sdk/client-docdb": "3.1011.0",
-        "@aws-sdk/credential-providers": "3.1011.0",
+        "@aws-sdk/credential-providers": "3.1036.0",
+        "@aws-sdk/xml-builder": "3.972.19",
         "@hackolade/fetch": "1.1.0",
         "async": "3.2.6",
         "bson": "1.1.6",
@@ -92,6 +93,6 @@
     },
     "overrides": {
         "minimatch": "10.2.4",
-        "fast-xml-parser": "5.5.7"
+        "fast-xml-parser": "5.7.1"
     }
 }
