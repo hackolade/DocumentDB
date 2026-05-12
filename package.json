@@ -63,17 +63,7 @@
         "lint:check": "oxlint --type-aware --type-check . || true",
         "format": "prettier --write ."
     },
-    "dependencies": {
-        "@aws-sdk/client-docdb": "3.1011.0",
-        "@aws-sdk/credential-providers": "3.1036.0",
-        "@aws-sdk/xml-builder": "3.972.19",
-        "@hackolade/fetch": "1.1.0",
-        "async": "3.2.6",
-        "bson": "1.1.6",
-        "lodash": "4.18.1",
-        "mongodb": "3.7.3",
-        "mongodb-collection-sample": "4.5.1"
-    },
+
     "devDependencies": {
         "@hackolade/hck-esbuild-plugins-pack": "0.0.1",
         "@ianvs/prettier-plugin-sort-imports": "4.7.1",
@@ -87,12 +77,23 @@
         "prettier": "3.8.1",
         "simple-git-hooks": "2.13.1"
     },
-    "simple-git-hooks": {
-        "pre-commit": "npm run package && npx lint-staged --config lint-staged.config.js",
-        "pre-push": "npm run lint"
+    "dependencies": {
+        "@aws-sdk/client-docdb": "3.1045.0",
+        "@aws-sdk/credential-providers": "3.1045.0",
+        "@aws-sdk/xml-builder": "3.972.22",
+        "@hackolade/fetch": "1.1.0",
+        "async": "3.2.6",
+        "bson": "1.1.6",
+        "lodash": "4.18.1",
+        "mongodb": "3.7.3",
+        "mongodb-collection-sample": "4.5.1"
     },
     "overrides": {
         "minimatch": "10.2.4",
-        "fast-xml-parser": "5.7.1"
+        "fast-xml-parser": "5.7.3"
+    },
+    "simple-git-hooks": {
+        "pre-commit": "npm run package && npx lint-staged --config lint-staged.config.js",
+        "pre-push": "npm run lint"
     }
 }
