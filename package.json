@@ -1,6 +1,6 @@
 {
     "name": "DocumentDB",
-    "version": "0.2.14",
+    "version": "0.2.15",
     "author": "hackolade",
     "engines": {
         "hackolade": "6.10.3",
@@ -63,7 +63,6 @@
         "lint:check": "oxlint --type-aware --type-check . || true",
         "format": "prettier --write ."
     },
-
     "devDependencies": {
         "@hackolade/hck-esbuild-plugins-pack": "0.0.1",
         "@ianvs/prettier-plugin-sort-imports": "4.7.1",
